@@ -3,7 +3,7 @@
 ![CI](https://github.com/qaz6750/AiQuotaMonitor/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/qaz6750/AiQuotaMonitor/actions/workflows/release.yml/badge.svg)
 
-基于 **WinUI 3 (Windows App SDK 1.6) + .NET 8** 的原生 Windows 桌面应用，监控 AI 服务配额用量。支持**智谱 GLM**、**Kimi Code**、**GitHub Copilot**、**小米 MiMo**、**MiniMax** 与 **Factory Droid**，多账号管理、实时刷新、趋势统计。
+基于 **WinUI 3 (Windows App SDK 1.6) + .NET 8** 的原生 Windows 桌面应用，监控 AI 服务配额用量。支持**智谱 GLM**、**Kimi Code**、**小米 MiMo**、**MiniMax**、**Factory Droid**、**OpenAI GPT** 与 **Anthropic Claude**，多账号管理、实时刷新、趋势统计。
 
 > 原生、清爽、自动跟随系统深浅色，Mica 材质背景，半透明标题栏。
 
@@ -14,12 +14,13 @@
 ### 多提供商架构
 - **智谱 GLM** — Coding Plan 订阅制 / API 按量付费，API Key 鉴权，5h/周/MCP 配额 + 用量趋势 + 等价花费
 - **Kimi Code** — Coding Plan 订阅制，API Key / OAuth Token 鉴权，5h/周额度
-- **GitHub Copilot** — Coding Plan，GitHub Token 鉴权，Premium Requests / Chat / Completions 配额
 - **小米 MiMo** — Token Plan 按量计费，Cookie 鉴权，套餐/月度 token 用量，一键获取 Cookie
 - **MiniMax Token Plan** — Token Plan 订阅 Key，5h/周额度
 - **Factory Droid** — API 按量付费，Factory API Key / Bearer Token 鉴权，Standard / Premium token 用量
+- **OpenAI GPT** — API 按量付费，组织 Usage / Costs API（Admin Key）
+- **Anthropic Claude** — API 按量付费，组织 Usage Report API（Admin Key）
 - **Feature Flags 系统** — `ProviderCapabilities` 声明每个提供商支持的功能，UI 自动显隐
-- 每个提供商独立客户端（`GlmClient` / `MiMoClient` / `KimiClient` / `MiniMaxClient` / `CopilotClient` / `FactoryClient`），实现 `IPlatformClient` 接口，新增平台只需加一个文件
+- 每个提供商独立客户端（`GlmClient` / `MiMoClient` / `KimiClient` / `MiniMaxClient` / `FactoryClient` / `OpenAiClient` / `ClaudeClient`），实现 `IPlatformClient` 接口，新增平台只需加一个文件
 
 ### 多账号管理
 - 添加任意数量账号，每账号独立 DPAPI 加密存储
@@ -78,10 +79,11 @@ dotnet run --project AiQuotaMonitor/AiQuotaMonitor.csproj
 **凭据获取：**
 - 智谱 API Key：[open.bigmodel.cn](https://open.bigmodel.cn) → 控制台 → API Keys
 - Kimi Code：在 Kimi Code Console 创建 API Key / OAuth Token
-- GitHub Copilot：填写具备 Copilot 权限的 GitHub Token
 - MiMo Cookie：点「一键获取」→ 应用内 WebView2 登录 → 自动提取
 - MiniMax：填写 Subscription Key
 - Factory Droid：填写 Factory API Key（`fk-...`）或 Bearer Token
+- OpenAI GPT：填写组织级 Admin Key，用于读取 Usage / Costs API
+- Anthropic Claude：填写组织级 Admin Key，用于读取 Usage Report API
 
 ---
 

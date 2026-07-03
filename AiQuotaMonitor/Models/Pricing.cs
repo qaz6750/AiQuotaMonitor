@@ -19,6 +19,17 @@ public static class GlmPricing
             ["glm-5"] = new(4, 18),
             ["glm-4.7"] = new(2, 8),
             ["glm-4.5-air"] = new(0.8, 2),
+            ["gpt-4o"] = new(18.125, 72.5),
+            ["gpt-4.1"] = new(14.5, 58),
+            ["gpt-4.1-mini"] = new(2.9, 11.6),
+            ["gpt-4.1-nano"] = new(0.725, 2.9),
+            ["gpt-5"] = new(9.0625, 72.5),
+            ["gpt-5-mini"] = new(1.8125, 14.5),
+            ["gpt-5-nano"] = new(0.3625, 2.9),
+            ["claude-opus-4"] = new(108.75, 543.75),
+            ["claude-sonnet-4"] = new(21.75, 108.75),
+            ["claude-3-5-sonnet"] = new(21.75, 108.75),
+            ["claude-3-5-haiku"] = new(5.8, 29),
         };
 
     /// <summary>未知模型回退价（保守取旗舰 GLM-5.2 价位）。</summary>
@@ -35,6 +46,8 @@ public static class GlmPricing
             ["GLM4.7"] = "#5D7092",
             ["GLM-4.6V"] = "#E8684A",
             ["GLM-4.5-Air"] = "#6DC8EC",
+            ["gpt"] = "#10A37F",
+            ["claude"] = "#D97757",
         };
 
     /// <summary>通用调色板（用于未在 ModelColors 中登记的模型）。</summary>

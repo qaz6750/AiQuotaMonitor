@@ -16,6 +16,7 @@ public sealed class AccountSummaryItem
     public long PrimaryLimit { get; set; }
     public long SecondaryUsed { get; set; }
     public long SecondaryLimit { get; set; }
+    public double EstimatedCostCny { get; set; }
 
     // 是否 Token Plan（显示 token 量而非百分比）
     public bool IsTokenPlan => Account.PlanType == PlanType.Token;
@@ -23,6 +24,7 @@ public sealed class AccountSummaryItem
 
     // 展示文本
     public string TodayTokensText => TodayTokens > 0 ? Formatters.FormatTokens(TodayTokens) : "—";
+    public string CostHint => EstimatedCostCny > 0 ? $"≈ {Formatters.FormatCost(EstimatedCostCny)}" : "费用待换算";
     public string FiveHourPctText => $"{FiveHourPct:F0}%";
     public string WeeklyPctText => $"{WeeklyPct:F0}%";
 

@@ -28,9 +28,11 @@ public sealed class FactoryClient : IPlatformClient
 
     public async Task<UsageResult> QueryUsageAsync(string credential, string baseUrl, bool enableRetry = true)
     {
-        var token = credential.Trim();
-        if (string.IsNullOrWhiteSpace(token))
+        var auth = credential.Trim();
+        if (string.IsNullOrWhiteSpace(auth))
             throw new InvalidOperationException("未配置 Factory API Key / Bearer Token。");
+        var isCookie = auth.Contains('=') && auth.Contains(';');
+        var bearer = isCookie ? ExtractCookieValue(auth, "access-token") : auth;
 
         Exception? last = null;
         foreach (var host in BuildHosts(baseUrl))
@@ -39,7 +41,8 @@ public sealed class FactoryClient : IPlatformClient
             {
                 var url = $"{host}/api/organization/subscription/usage?useCache=true";
                 using var req = new HttpRequestMessage(HttpMethod.Get, url);
-                req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                if (!string.IsNullOrWhiteSpace(bearer)) req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {bearer}");
+                if (isCookie) req.Headers.TryAddWithoutValidation("Cookie", auth);
                 req.Headers.TryAddWithoutValidation("Accept", "application/json");
                 req.Headers.TryAddWithoutValidation("Content-Type", "application/json");
                 req.Headers.TryAddWithoutValidation("Origin", "https://app.factory.ai");
@@ -70,6 +73,17 @@ public sealed class FactoryClient : IPlatformClient
         }
 
         throw last ?? new HttpRequestException("Factory 用量请求失败。");
+    }
+
+    private static string? ExtractCookieValue(string cookieHeader, string name)
+    {
+        foreach (var part in cookieHeader.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var idx = part.IndexOf('=');
+            if (idx <= 0) continue;
+            if (part[..idx].Equals(name, StringComparison.OrdinalIgnoreCase)) return part[(idx + 1)..];
+        }
+        return null;
     }
 
     private static IEnumerable<string> BuildHosts(string baseUrl)

@@ -19,8 +19,9 @@ public static class PlatformClientFactory
     private static readonly KimiClient Kimi = new();
     private static readonly MiniMaxClient MiniMax = new();
     private static readonly MiMoClient MiMo = new();
-    private static readonly CopilotClient Copilot = new();
     private static readonly FactoryClient Factory = new();
+    private static readonly OpenAiClient Gpt = new();
+    private static readonly ClaudeClient Claude = new();
 
     /// <summary>根据账号的 ProviderId 获取对应客户端。</summary>
     public static IPlatformClient Get(GlmAccount account)
@@ -30,8 +31,9 @@ public static class PlatformClientFactory
             "kimi" => Kimi,
             "minimax" => MiniMax,
             "mimo" => MiMo,
-            "copilot" => Copilot,
             "factory" => Factory,
+            "gpt" => Gpt,
+            "claude" => Claude,
             _ => Glm,
         };
     }

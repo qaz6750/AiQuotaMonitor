@@ -162,6 +162,8 @@ public partial class OverviewViewModel : ViewModelBase
     [ObservableProperty] private string _costText = "—";
     [ObservableProperty] private string _costWindowLabel = "";
     [ObservableProperty] private bool _costHasFallback;
+    [ObservableProperty] private string _costBreakdownText = "等待用量数据";
+    [ObservableProperty] private string _costFormulaText = "按模型 token × 单价估算，OpenAI/Claude 使用官方费用优先。";
 
     // ===== KPI =====
     [ObservableProperty] private string _todayTokensText = "—";
@@ -270,6 +272,9 @@ public partial class OverviewViewModel : ViewModelBase
                 item.WeeklyPct = r.Weekly?.Percentage ?? 0;
                 item.SecondaryUsed = (long)(r.Weekly?.CurrentUsage ?? 0);
                 item.SecondaryLimit = (long)(r.Weekly?.Total ?? 0);
+                item.EstimatedCostCny = (a.PlanType == PlanType.PayAsYouGo && r.Weekly?.CurrentUsage is double c && c > 0)
+                    ? c
+                    : CostCalculator.EstimateFromTrend(r.Trend7d)?.TotalCny ?? 0;
                 item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(Math.Max(item.FiveHourPct, item.WeeklyPct)));
                 total += item.TodayTokens;
             }
@@ -540,13 +545,22 @@ public partial class OverviewViewModel : ViewModelBase
         }
 
         // 等价花费（优先近 7 天趋势，其次今日模型汇总）
-        var cost = CostCalculator.EstimateFromTrend(r.Trend7d)
-                   ?? CostCalculator.EstimateFromModels(r.ModelUsage);
-        if (cost is not null)
+        if (IsPayAsYouGoPlan && r.Weekly?.CurrentUsage is double officialCost && officialCost > 0)
+        {
+            CostText = Formatters.FormatCost(officialCost);
+            CostWindowLabel = "近 7 天官方费用";
+            CostHasFallback = false;
+            CostBreakdownText = $"官方费用约 ¥{officialCost:F2}；美元账单按 1 USD ≈ ¥7.25 换算。";
+            CostFormulaText = "费用 = 官方 cost_usd × 7.25；token 图按时段展示。";
+        }
+        else if (CostCalculator.EstimateFromTrend(r.Trend7d) ?? CostCalculator.EstimateFromModels(r.ModelUsage) is { } cost)
         {
             CostText = Formatters.FormatCost(cost.TotalCny);
             CostWindowLabel = cost.HasFallback ? "（含未知模型回退价）" : "近 7 天等价计费";
             CostHasFallback = cost.HasFallback;
+            CostBreakdownText = string.Join(" · ", cost.PerModel.Take(3).Select(x => $"{x.Model}≈{Formatters.FormatCost(x.CostCny)}"));
+            if (string.IsNullOrWhiteSpace(CostBreakdownText)) CostBreakdownText = "无可换算模型明细";
+            CostFormulaText = "换算 = tokens / 1,000,000 × (输入价 + 输出价) / 2。";
         }
 
         // 今日 KPI

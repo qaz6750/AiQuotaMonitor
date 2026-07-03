@@ -27,7 +27,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2">
                             <TextBlock Text="账号管理" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="已接入：Coding Plan（智谱 GLM、Kimi Code、GitHub Copilot）、Token Plan（小米 MiMo、MiniMax）、按量付费（Factory Droid）。仅展示确认可查询用量的平台。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="已接入：Coding Plan（智谱 GLM、Kimi Code）、Token Plan（小米 MiMo、MiniMax）、按量付费（Factory Droid、OpenAI GPT、Anthropic Claude）。MiMo 需要网页 Cookie；Factory 可用 API Key 或网页 Cookie；GPT/Claude 使用 Admin Key。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Grid.Column="1" Command="{Binding StartAddCommand}" Padding="14,7" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -72,7 +72,7 @@
                                     <TextBlock Text="{Binding CredentialLabel}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                                     <Button Command="{Binding FetchCredentialCommand}" Content="一键获取" Padding="10,3" FontSize="11" Visibility="{Binding CanAutoFetchCredential, Converter={StaticResource BoolToVisibility}}"/>
                                 </StackPanel>
-                                <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按所选提供商填写 API Key、Token、Subscription Key、GitHub Token 或 Cookie"/>
+                                <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按所选提供商填写 API Key、Admin Key、Subscription Key、Bearer Token 或 Cookie"/>
                             </StackPanel>
 
                             <StackPanel Spacing="4" Visibility="{Binding ShowBaseUrl, Converter={StaticResource BoolToVisibility}}">

@@ -20,7 +20,7 @@ public sealed class ProviderCapabilities
     public bool HasMcp { get; init; } = true;
     /// <summary>是否 Cookie 鉴权（非 API Key）。</summary>
     public bool IsCookieAuth { get; init; } = false;
-    /// <summary>是否支持本机自动发现凭据（如 gh CLI token）。</summary>
+    /// <summary>是否支持通过内置网页登录自动抓取 Cookie。</summary>
     public bool SupportsCredentialAutoFetch { get; init; } = false;
     /// <summary>凭据标签（"API Key" 或 "Cookie"）。</summary>
     public string CredentialLabel { get; init; } = "API Key";
@@ -134,30 +134,6 @@ public static class Providers
         },
     };
 
-    /// <summary>GitHub Copilot（Premium requests / Chat / Completions 配额）。</summary>
-    public static readonly ProviderDescriptor Copilot = new()
-    {
-        Id = "copilot",
-        Name = "GitHub Copilot",
-        Glyph = "C",
-        BrandColor = "#24292F",
-        DefaultBaseUrl = "https://api.github.com/copilot_internal/user",
-        DocsUrl = "https://github.com/settings/tokens",
-        SupportedPlan = PlanType.Coding,
-        Capabilities = new ProviderCapabilities
-        {
-            HasTodayUsage = false,
-            HasTrend = false,
-            HasCost = false,
-            HasEstimate = false,
-            SupportsCredentialAutoFetch = true,
-            CredentialLabel = "GitHub Token",
-            PrimaryQuotaLabel = "Premium Requests",
-            SecondaryQuotaLabel = "Chat 配额",
-            RingCenterLabel = "PR",
-        },
-    };
-
     /// <summary>Factory Droid（Standard / Premium token 用量）。</summary>
     public static readonly ProviderDescriptor Factory = new()
     {
@@ -175,15 +151,64 @@ public static class Providers
             HasCost = false,
             HasEstimate = false,
             HasMcp = false,
-            CredentialLabel = "Factory API Key / Bearer Token",
+            SupportsCredentialAutoFetch = true,
+            CredentialLabel = "Factory API Key / Bearer Token / Cookie",
             PrimaryQuotaLabel = "Standard Tokens",
             SecondaryQuotaLabel = "Premium Tokens",
             RingCenterLabel = "Droid",
         },
     };
 
+    /// <summary>OpenAI GPT（组织用量 / 费用 API，需要 Admin Key）。</summary>
+    public static readonly ProviderDescriptor Gpt = new()
+    {
+        Id = "gpt",
+        Name = "OpenAI GPT",
+        Glyph = "G",
+        BrandColor = "#10A37F",
+        DefaultBaseUrl = "https://api.openai.com",
+        DocsUrl = "https://platform.openai.com/settings/organization/admin-keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = true,
+            HasTrend = true,
+            HasResetTime = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "OpenAI Admin Key",
+            PrimaryQuotaLabel = "今日 Tokens",
+            SecondaryQuotaLabel = "近 7 天费用",
+            RingCenterLabel = "GPT",
+        },
+    };
+
+    /// <summary>Anthropic Claude（组织 Usage/Cost Report，需要 Admin Key）。</summary>
+    public static readonly ProviderDescriptor Claude = new()
+    {
+        Id = "claude",
+        Name = "Anthropic Claude",
+        Glyph = "C",
+        BrandColor = "#D97757",
+        DefaultBaseUrl = "https://api.anthropic.com",
+        DocsUrl = "https://console.anthropic.com/settings/admin-keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = true,
+            HasTrend = true,
+            HasResetTime = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "Anthropic Admin Key",
+            PrimaryQuotaLabel = "今日 Tokens",
+            SecondaryQuotaLabel = "近 7 天费用",
+            RingCenterLabel = "Claude",
+        },
+    };
+
     /// <summary>全部已启用的提供商。</summary>
-    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, Copilot, MiMo, MiniMax, Factory };
+    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, MiMo, MiniMax, Factory, Gpt, Claude };
 
     /// <summary>按 id 查找。</summary>
     public static ProviderDescriptor GetById(string? id)

@@ -36,14 +36,47 @@
             PaneDisplayMode="Left"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
-            OpenPaneLength="206"
+            IsPaneToggleButtonVisible="False"
+            IsPaneOpen="True"
+            OpenPaneLength="246"
+            CompactPaneLength="246"
             SelectionChanged="NavView_SelectionChanged"
-            Background="Transparent">
+            Background="Transparent"
+            PaneBackground="{ThemeResource SidebarBackgroundBrush}">
+            <NavigationView.PaneHeader>
+                <StackPanel Margin="18,12,18,18" Spacing="14">
+                    <Border CornerRadius="18" Padding="14" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
+                        <StackPanel Spacing="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="38" Height="38" CornerRadius="12" Background="#0EA5E9">
+                                    <TextBlock Text="AI" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="AIUsage Style" FontSize="13" FontWeight="SemiBold"/>
+                                    <TextBlock Text="配额 · Token · 费用" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                            <Border CornerRadius="999" Padding="10,4" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Ellipse Width="7" Height="7" Fill="#22C55E" VerticalAlignment="Center"/>
+                                    <TextBlock Text="本地加密，多平台监控" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="MONITOR" FontSize="10" FontWeight="SemiBold" Foreground="{ThemeResource SubtleTextBrush}" Margin="4,0,0,0"/>
+                </StackPanel>
+            </NavigationView.PaneHeader>
             <NavigationView.MenuItems>
                 <NavigationViewItem Tag="overview" Icon="Home" Content="仪表盘"/>
                 <NavigationViewItem Tag="stats" Icon="AllApps" Content="用量统计"/>
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
+                <NavigationViewItem IsEnabled="False" Content="GPT / Claude 使用官方 Admin Key，不采集网页登录 Cookie"/>
                 <NavigationViewItem Tag="settings" Icon="Setting" Content="设置"/>
             </NavigationView.FooterMenuItems>
             <Frame x:Name="NavFrame" Background="Transparent" CacheSize="4"/>
