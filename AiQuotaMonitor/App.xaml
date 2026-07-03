@@ -13,22 +13,28 @@
             <!-- 全局主题色资源：随系统暗色模式自动切换 -->
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <Color x:Key="PageBackgroundColor">#F5F6F8</Color>
-                    <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
-                    <Color x:Key="CardBorderColor">#E8EAED</Color>
+                    <Color x:Key="PageBackgroundColor">#F4F7FB</Color>
+                    <Color x:Key="CardBackgroundColor">#FDFEFF</Color>
+                    <Color x:Key="CardBorderColor">#DDE5F0</Color>
                     <Color x:Key="SubtleTextColor">#6B7280</Color>
-                    <Color x:Key="SecondaryTextColor">#374151</Color>
+                    <Color x:Key="SecondaryTextColor">#243044</Color>
                     <Color x:Key="CardStrokeColor">#00000000</Color>
-                    <Color x:Key="TitleBarBackgroundColor">#F5F6F8</Color>
+                    <Color x:Key="TitleBarBackgroundColor">#EEF4FB</Color>
+                    <Color x:Key="SidebarBackgroundColor">#EDF7F4</Color>
+                    <Color x:Key="SoftPanelBackgroundColor">#EFF4FA</Color>
+                    <Color x:Key="GlowColor">#3358F5B8</Color>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <Color x:Key="PageBackgroundColor">#0B0B0F</Color>
-                    <Color x:Key="CardBackgroundColor">#16161C</Color>
-                    <Color x:Key="CardBorderColor">#26262E</Color>
-                    <Color x:Key="SubtleTextColor">#9CA3AF</Color>
-                    <Color x:Key="SecondaryTextColor">#D1D5DB</Color>
+                    <Color x:Key="PageBackgroundColor">#111315</Color>
+                    <Color x:Key="CardBackgroundColor">#202123</Color>
+                    <Color x:Key="CardBorderColor">#32343A</Color>
+                    <Color x:Key="SubtleTextColor">#9AA0AA</Color>
+                    <Color x:Key="SecondaryTextColor">#E4E7EC</Color>
                     <Color x:Key="CardStrokeColor">#00000000</Color>
-                    <Color x:Key="TitleBarBackgroundColor">#0B0B0F</Color>
+                    <Color x:Key="TitleBarBackgroundColor">#111315</Color>
+                    <Color x:Key="SidebarBackgroundColor">#101816</Color>
+                    <Color x:Key="SoftPanelBackgroundColor">#1A1B1F</Color>
+                    <Color x:Key="GlowColor">#663B82F6</Color>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -47,6 +53,8 @@
             <SolidColorBrush x:Key="SubtleTextBrush" Color="{ThemeResource SubtleTextColor}" />
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="{ThemeResource SecondaryTextColor}" />
             <SolidColorBrush x:Key="TitleBarBrush" Color="{ThemeResource TitleBarBackgroundColor}" Opacity="0.35" />
+            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{ThemeResource SidebarBackgroundColor}" Opacity="0.78" />
+            <SolidColorBrush x:Key="SoftPanelBackgroundBrush" Color="{ThemeResource SoftPanelBackgroundColor}" />
 
             <!-- 配额颜色（固定，明暗通用） -->
             <Color x:Key="QuotaGoodColor">#3FB950</Color>
@@ -61,7 +69,7 @@
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="CornerRadius" Value="18" />
                 <Setter Property="Padding" Value="20" />
             </Style>
 
@@ -69,7 +77,7 @@
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="CornerRadius" Value="18" />
                 <Setter Property="Padding" Value="20" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />

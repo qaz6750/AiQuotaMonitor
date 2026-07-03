@@ -18,7 +18,8 @@ public sealed class AccountSummaryItem
     public long SecondaryLimit { get; set; }
 
     // 是否 Token Plan（显示 token 量而非百分比）
-    public bool IsTokenPlan => Account.Provider.Capabilities.IsCookieAuth;
+    public bool IsTokenPlan => Account.PlanType == PlanType.Token;
+    public bool IsPayAsYouGoPlan => Account.PlanType == PlanType.PayAsYouGo;
 
     // 展示文本
     public string TodayTokensText => TodayTokens > 0 ? Formatters.FormatTokens(TodayTokens) : "—";
@@ -28,9 +29,13 @@ public sealed class AccountSummaryItem
     // 主/次配额显示（Token Plan 显示 token 量，Coding Plan 显示百分比）
     public string PrimaryDisplay => IsTokenPlan && PrimaryLimit > 0
         ? $"{Formatters.FormatTokens(PrimaryUsed)}"
+        : IsPayAsYouGoPlan
+            ? TodayTokensText
         : FiveHourPctText;
     public string SecondaryDisplay => IsTokenPlan && SecondaryLimit > 0
         ? $"{Formatters.FormatTokens(SecondaryUsed)}"
+        : IsPayAsYouGoPlan
+            ? "按量"
         : WeeklyPctText;
     public string PrimaryLabel => Account.Provider.Capabilities.PrimaryQuotaLabel.Replace("额度", "");
     public string SecondaryLabel => Account.Provider.Capabilities.SecondaryQuotaLabel.Replace("额度", "");

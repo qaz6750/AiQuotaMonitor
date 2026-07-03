@@ -2,11 +2,12 @@ using System.Text.Json.Serialization;
 
 namespace AiQuotaMonitor.Models;
 
-/// <summary>套餐计费类型。Coding = 订阅制（5h/周/MCP 配额），Token = 按量计费。</summary>
+/// <summary>套餐计费类型。Coding = 订阅制（5h/周/MCP 配额），Token = Token 套餐，PayAsYouGo = API 按量付费。</summary>
 public enum PlanType
 {
     Coding,
     Token,
+    PayAsYouGo,
 }
 
 /// <summary>PlanType 的展示与解析辅助。</summary>
@@ -16,6 +17,7 @@ public static class PlanTypeExtensions
     {
         PlanType.Coding => "Coding",
         PlanType.Token => "Token",
+        PlanType.PayAsYouGo => "按量付费",
         _ => t.ToString(),
     };
 
@@ -23,6 +25,7 @@ public static class PlanTypeExtensions
     {
         PlanType.Coding => "订阅制配额",
         PlanType.Token => "按量计费",
+        PlanType.PayAsYouGo => "API 按量付费",
         _ => string.Empty,
     };
 
@@ -30,6 +33,7 @@ public static class PlanTypeExtensions
     {
         PlanType.Coding => "\uE734",
         PlanType.Token => "\uE9F2",
+        PlanType.PayAsYouGo => "\uE8D4",
         _ => "\uE9F2",
     };
 
@@ -37,13 +41,23 @@ public static class PlanTypeExtensions
     public static PlanType Parse(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return PlanType.Coding;
-        return s.Trim().Equals("Token", StringComparison.OrdinalIgnoreCase)
-            ? PlanType.Token
-            : PlanType.Coding;
+        return s.Trim() switch
+        {
+            var v when v.Equals("Token", StringComparison.OrdinalIgnoreCase) => PlanType.Token,
+            var v when v.Equals("PayAsYouGo", StringComparison.OrdinalIgnoreCase) => PlanType.PayAsYouGo,
+            var v when v.Equals("PayG", StringComparison.OrdinalIgnoreCase) => PlanType.PayAsYouGo,
+            var v when v.Equals("按量付费", StringComparison.OrdinalIgnoreCase) => PlanType.PayAsYouGo,
+            _ => PlanType.Coding,
+        };
     }
 
     /// <summary>持久化编码。</summary>
-    public static string Encode(PlanType t) => t == PlanType.Token ? "Token" : "Coding";
+    public static string Encode(PlanType t) => t switch
+    {
+        PlanType.Token => "Token",
+        PlanType.PayAsYouGo => "PayAsYouGo",
+        _ => "Coding",
+    };
 }
 
 /// <summary>运行时账号模型（API Key 已解密，仅存在于内存中）。</summary>
@@ -65,7 +79,7 @@ public sealed class GlmAccount
         ? $"账号 {Id[..Math.Min(6, Id.Length)]}"
         : Name;
 
-    public string PlanBadge => PlanType == PlanType.Token ? "Token" : "Coding";
+    public string PlanBadge => PlanType.DisplayName();
 
     /// <summary>用于下拉等处展示的「名称 (Plan)」组合文本。</summary>
     public string DisplayWithPlan => $"{Provider.Name} · {DisplayLabel} · {PlanBadge}";

@@ -51,7 +51,6 @@ public partial class StatsViewModel : ViewModelBase
     {
         _data.Updated += Rebuild;
         Rebuild();
-        _ = _data.RefreshAsync();
     }
 
     /// <summary>页面卸载时取消订阅。</summary>

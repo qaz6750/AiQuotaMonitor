@@ -6,7 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid Background="{ThemeResource PageBackgroundBrush}">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{ThemeResource PageBackgroundColor}" Offset="0"/>
+                <GradientStop Color="{ThemeResource SoftPanelBackgroundColor}" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="44"/>
             <RowDefinition Height="*"/>
@@ -30,17 +36,17 @@
             PaneDisplayMode="Left"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
-            OpenPaneLength="176"
+            OpenPaneLength="206"
             SelectionChanged="NavView_SelectionChanged"
             Background="Transparent">
             <NavigationView.MenuItems>
-                <NavigationViewItem Tag="overview" Icon="Home" Content="概览"/>
-                <NavigationViewItem Tag="stats" Icon="AllApps" Content="统计"/>
+                <NavigationViewItem Tag="overview" Icon="Home" Content="仪表盘"/>
+                <NavigationViewItem Tag="stats" Icon="AllApps" Content="用量统计"/>
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem Tag="settings" Icon="Setting" Content="设置"/>
             </NavigationView.FooterMenuItems>
-            <Frame x:Name="NavFrame" Background="Transparent"/>
+            <Frame x:Name="NavFrame" Background="Transparent" CacheSize="4"/>
         </NavigationView>
     </Grid>
 </Window>

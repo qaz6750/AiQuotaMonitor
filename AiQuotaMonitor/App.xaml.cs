@@ -1,3 +1,4 @@
+using AiQuotaMonitor.Helpers;
 using AiQuotaMonitor.Services;
 using AiQuotaMonitor.Views;
 using Microsoft.UI.Xaml;
@@ -39,11 +40,16 @@ public partial class App : Application
         }
         catch (Exception ex) { AppLogger.Swallowed("主题应用", ex); }
 
-        // 启动时导航：已有账号进入概览页，否则进入欢迎页选择套餐类型
+        // 启动先展示 UI，再在后台刷新数据，减少首屏等待体感。
         var startPage = SettingsService.Instance.HasAccounts
             ? typeof(OverviewPage)
             : typeof(WelcomePage);
         _mainWindow.Navigate(startPage);
+        if (SettingsService.Instance.HasAccounts)
+        {
+            UsageDataService.Instance.StartAutoRefresh();
+            _ = UsageDataService.Instance.RefreshAsync();
+        }
     }
 
     /// <summary>便捷导航入口（其他模块通过 App.MainWindowNavigate 跳转）。</summary>

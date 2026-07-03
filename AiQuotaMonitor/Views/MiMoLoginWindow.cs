@@ -16,6 +16,7 @@ public sealed class MiMoLoginWindow : Window
     private readonly TextBlock _status = new();
     private readonly string _loginUrl;
     private bool _captured;
+    private bool _closed;
 
     public MiMoLoginWindow(string loginUrl)
     {
@@ -76,9 +77,26 @@ public sealed class MiMoLoginWindow : Window
                 _captured = true;
                 _status.Text = $"✓ 已获取 {cookies.Count} 个 cookie";
                 CookieReady?.Invoke(cookieStr);
+                CloseAfterCapture();
             }
         }
         catch { /* 下次导航再试 */ }
+    }
+
+    private void CloseAfterCapture()
+    {
+        if (_closed) return;
+        _closed = true;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            try
+            {
+                _webview.NavigationCompleted -= OnNavCompleted;
+                _webview.Close();
+            }
+            catch { }
+            Close();
+        });
     }
 
     private void SizeAndCenter(int w, int h)

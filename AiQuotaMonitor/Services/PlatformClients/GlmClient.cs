@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using AiQuotaMonitor.Models;
 using AiQuotaMonitor.Helpers;
-using AiQuotaMonitor.Models;
 using AiQuotaMonitor.Models.Api;
 
 namespace AiQuotaMonitor.Services;

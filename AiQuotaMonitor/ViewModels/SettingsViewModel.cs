@@ -24,12 +24,21 @@ public sealed class AccountRow
         : "未配置";
 }
 
+/// <summary>设置页提供商下拉项。</summary>
+public sealed class ProviderOption
+{
+    public string Id { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public PlanType PlanType { get; init; }
+}
+
 /// <summary>设置页 ViewModel：多账号管理 + Plan 类型切换 + 全局刷新偏好。</summary>
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly SettingsService _s = SettingsService.Instance;
 
     public ObservableCollection<AccountRow> Accounts { get; } = new();
+    public ObservableCollection<ProviderOption> ProviderOptions { get; } = new();
 
     // ===== 编辑表单 =====
     [ObservableProperty] private string _editingName = "";
@@ -44,25 +53,35 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _isTesting;
     [ObservableProperty] private bool _hasAccounts;
 
-    /// <summary>ComboBox 绑定用：0=Coding, 1=Token。</summary>
+    /// <summary>ComboBox 绑定用：0=Coding, 1=Token, 2=按量付费。</summary>
     public int EditingPlanIndex
     {
         get => (int)EditingPlan;
         set
         {
-            if ((int)EditingPlan != value)
+            var normalized = Enum.IsDefined(typeof(PlanType), value) ? (PlanType)value : PlanType.Coding;
+            if (EditingPlan != normalized)
             {
-                EditingPlan = (PlanType)value;
+                EditingPlan = normalized;
                 OnPropertyChanged();
             }
         }
     }
 
-    partial void OnEditingPlanChanged(PlanType value) => OnPropertyChanged(nameof(EditingPlanIndex));
+    partial void OnEditingPlanChanged(PlanType value)
+    {
+        RefreshProviderOptions();
+        if (ProviderOptions.Count > 0 && !ProviderOptions.Any(p => p.Id.Equals(EditingProviderId, StringComparison.OrdinalIgnoreCase)))
+        {
+            ApplyProvider(ProviderOptions[0].Id, forcePlan: false);
+        }
+        OnPropertyChanged(nameof(EditingPlanIndex));
+        NotifyProviderChanged();
+    }
 
     /// <summary>当前编辑的提供商是否为 Cookie 鉴权（MiMo，隐藏 URL）。</summary>
-    public bool IsCookieProvider => EditingProviderId == "mimo";
-    public string CredentialLabel => IsCookieProvider ? "Cookie" : "API Key";
+    public bool IsCookieProvider => Providers.GetById(EditingProviderId).Capabilities.IsCookieAuth;
+    public string CredentialLabel => Providers.GetById(EditingProviderId).Capabilities.CredentialLabel;
 
     /// <summary>当前编辑的提供商是否需要 URL 输入（Cookie 鉴权的隐藏）。</summary>
     public bool ShowBaseUrl => !IsCookieProvider;
@@ -72,6 +91,35 @@ public partial class SettingsViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsCookieProvider));
         OnPropertyChanged(nameof(ShowBaseUrl));
+        OnPropertyChanged(nameof(CredentialLabel));
+        OnPropertyChanged(nameof(EditingProviderIndex));
+        OnPropertyChanged(nameof(EditingPlanIndex));
+    }
+
+    private void RefreshProviderOptions()
+    {
+        ProviderOptions.Clear();
+        foreach (var p in Providers.All.Where(p => p.SupportedPlan == EditingPlan))
+        {
+            ProviderOptions.Add(new ProviderOption
+            {
+                Id = p.Id,
+                DisplayName = p.Name,
+                PlanType = p.SupportedPlan,
+            });
+        }
+    }
+
+    private void ApplyProvider(string providerId, bool forcePlan)
+    {
+        var provider = Providers.GetById(providerId);
+        EditingProviderId = provider.Id;
+        if (forcePlan && EditingPlan != provider.SupportedPlan)
+        {
+            EditingPlan = provider.SupportedPlan;
+        }
+        EditingBaseUrl = provider.DefaultBaseUrl;
+        NotifyProviderChanged();
     }
 
     /// <summary>一键获取 cookie：打开内置 WebView2 登录窗口，登录后自动提取。</summary>
@@ -99,16 +147,17 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>ComboBox 绑定用：0=智谱 GLM，1=小米 MiMo，2=自定义。</summary>
     public int EditingProviderIndex
     {
-        get => EditingProviderId switch { "mimo" => 1, _ => 0 };
+        get
+        {
+            var idx = ProviderOptions.ToList().FindIndex(p => p.Id.Equals(EditingProviderId, StringComparison.OrdinalIgnoreCase));
+            return idx >= 0 ? idx : 0;
+        }
         set
         {
-            var newId = value switch { 1 => "mimo", _ => "glm" };
+            var newId = value >= 0 && value < ProviderOptions.Count ? ProviderOptions[value].Id : "glm";
             if (EditingProviderId != newId)
             {
-                EditingProviderId = newId;
-                EditingBaseUrl = Providers.GetById(newId).DefaultBaseUrl;
-                OnPropertyChanged(nameof(IsCookieProvider));
-                OnPropertyChanged(nameof(ShowBaseUrl));
+                ApplyProvider(newId, forcePlan: false);
                 OnPropertyChanged();
             }
         }
@@ -125,6 +174,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     public SettingsViewModel()
     {
+        RefreshProviderOptions();
         RefreshAccounts();
         RefreshInterval = _s.RefreshIntervalMinutes;
         EnableRetry = _s.EnableRetry;
@@ -162,7 +212,9 @@ public partial class SettingsViewModel : ViewModelBase
     {
         EditingId = null;
         EditingName = "";
-        EditingProviderId = "glm";
+        EditingPlan = Providers.Glm.SupportedPlan;
+        RefreshProviderOptions();
+        EditingProviderId = Providers.Glm.Id;
         EditingApiKey = "";
         EditingBaseUrl = Providers.Glm.DefaultBaseUrl;
         EditingHeader = "新建账号";
@@ -178,8 +230,9 @@ public partial class SettingsViewModel : ViewModelBase
         var acc = row.Account;
         EditingId = acc.Id;
         EditingName = acc.Name;
-        EditingProviderId = acc.ProviderId;
         EditingPlan = acc.PlanType;
+        RefreshProviderOptions();
+        EditingProviderId = acc.ProviderId;
         EditingApiKey = acc.ApiKey;
         EditingBaseUrl = acc.BaseUrl;
         EditingHeader = "编辑账号";
@@ -196,7 +249,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(EditingApiKey))
         {
-            SaveMessage = "⚠ 请填写 API Key";
+            SaveMessage = $"⚠ 请填写 {CredentialLabel}";
             return;
         }
         if (Providers.GetById(EditingProviderId).IsCustom && string.IsNullOrWhiteSpace(EditingBaseUrl))

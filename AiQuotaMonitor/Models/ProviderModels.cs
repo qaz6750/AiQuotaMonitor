@@ -86,8 +86,101 @@ public static class Providers
         },
     };
 
+    /// <summary>Kimi Code（Coding Plan / 订阅配额，API Key 鉴权）。</summary>
+    public static readonly ProviderDescriptor Kimi = new()
+    {
+        Id = "kimi",
+        Name = "Kimi Code",
+        Glyph = "K",
+        BrandColor = "#7C3AED",
+        DefaultBaseUrl = "https://api.kimi.com/coding/v1/usages",
+        DocsUrl = "https://www.kimi.com/code/console",
+        SupportedPlan = PlanType.Coding,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasMcp = false,
+            HasCost = false,
+            CredentialLabel = "API Key / OAuth Token",
+            PrimaryQuotaLabel = "5 小时额度",
+            SecondaryQuotaLabel = "周额度",
+            RingCenterLabel = "5H",
+        },
+    };
+
+    /// <summary>MiniMax Token Plan（订阅 Key，API Key 鉴权）。</summary>
+    public static readonly ProviderDescriptor MiniMax = new()
+    {
+        Id = "minimax",
+        Name = "MiniMax Token Plan",
+        Glyph = "X",
+        BrandColor = "#10B981",
+        DefaultBaseUrl = "https://api.minimaxi.com/v1/token_plan/remains",
+        DocsUrl = "https://platform.minimaxi.com",
+        SupportedPlan = PlanType.Token,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasMcp = false,
+            HasCost = false,
+            CredentialLabel = "Subscription Key",
+            PrimaryQuotaLabel = "5 小时额度",
+            SecondaryQuotaLabel = "周额度",
+            RingCenterLabel = "5H",
+        },
+    };
+
+    /// <summary>GitHub Copilot（Premium requests / Chat / Completions 配额）。</summary>
+    public static readonly ProviderDescriptor Copilot = new()
+    {
+        Id = "copilot",
+        Name = "GitHub Copilot",
+        Glyph = "C",
+        BrandColor = "#24292F",
+        DefaultBaseUrl = "https://api.github.com/copilot_internal/user",
+        DocsUrl = "https://github.com/settings/tokens",
+        SupportedPlan = PlanType.Coding,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasCost = false,
+            HasEstimate = false,
+            CredentialLabel = "GitHub Token",
+            PrimaryQuotaLabel = "Premium Requests",
+            SecondaryQuotaLabel = "Chat 配额",
+            RingCenterLabel = "PR",
+        },
+    };
+
+    /// <summary>Factory Droid（Standard / Premium token 用量）。</summary>
+    public static readonly ProviderDescriptor Factory = new()
+    {
+        Id = "factory",
+        Name = "Factory Droid",
+        Glyph = "F",
+        BrandColor = "#F59E0B",
+        DefaultBaseUrl = "https://app.factory.ai",
+        DocsUrl = "https://app.factory.ai",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasCost = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "Factory API Key / Bearer Token",
+            PrimaryQuotaLabel = "Standard Tokens",
+            SecondaryQuotaLabel = "Premium Tokens",
+            RingCenterLabel = "Droid",
+        },
+    };
+
     /// <summary>全部已启用的提供商。</summary>
-    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, MiMo };
+    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, Copilot, MiMo, MiniMax, Factory };
 
     /// <summary>按 id 查找。</summary>
     public static ProviderDescriptor GetById(string? id)

@@ -10,7 +10,7 @@
     Background="Transparent">
 
     <ScrollViewer Padding="0">
-        <StackPanel Padding="24,6,24,20" Spacing="10">
+        <StackPanel Padding="28,14,28,28" Spacing="16">
 
             <!-- ============ Header ============ -->
             <Grid>
@@ -20,7 +20,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="5">
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="用量总览" FontSize="20" FontWeight="SemiBold"/>
+                        <TextBlock Text="仪表盘" FontSize="22" FontWeight="SemiBold"/>
                         <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding LastUpdatedText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
@@ -61,36 +61,64 @@
             <InfoBar
                 IsOpen="{Binding IsTokenPlan}"
                 Severity="Informational"
-                Title="Token Plan（按量计费模式）"
-                Message="当前账号为 Token Plan（按量计费）。配额百分比与 token 用量来自用量接口。"
+                Title="Token Plan"
+                Message="当前账号为 Token Plan。配额百分比与 token 用量来自用量接口。"
+                IsClosable="False"/>
+
+            <!-- ============ API 按量付费说明 ============ -->
+            <InfoBar
+                IsOpen="{Binding IsPayAsYouGoPlan}"
+                Severity="Informational"
+                Title="API 按量付费"
+                Message="当前账号按模型 token 用量估算等价 API 花费；配额窗口可能不适用，以统计页的模型明细和费用为准。"
                 IsClosable="False"/>
 
             <!-- ============ 多账号概览：顶部合计 + 每账号一行 ============ -->
-            <Border Style="{StaticResource CardStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="全部账号今日合计" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
-                            <TextBlock Text="{Binding TotalTodayTokensText}" FontSize="30" FontWeight="Bold"/>
-                            <TextBlock Text="tokens" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Bottom" Margin="0,0,0,5"/>
-                            <ProgressRing Width="16" Height="16" IsActive="{Binding IsLoadingAll}" Margin="8,0,0,5"/>
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="账号" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        <TextBlock Text="{Binding AccountCount}" FontSize="28" FontWeight="SemiBold" Foreground="#22C55E"/>
+                        <TextBlock Text="已保存账号" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Token" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        <TextBlock Text="{Binding TotalTodayTokensText}" FontSize="28" FontWeight="SemiBold" Foreground="#C85CFF"/>
+                        <TextBlock Text="今日合计" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="状态" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                                <TextBlock Text="{Binding StatusText}" FontSize="28" FontWeight="SemiBold"/>
+                                <ProgressRing Width="16" Height="16" IsActive="{Binding IsLoadingAll}" Margin="8,0,0,5"/>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding AccountCount}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-                        <TextBlock Text="个账号 · 点击查看详细" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" HorizontalAlignment="Right">
+                            <Ellipse Width="10" Height="10" Fill="{Binding StatusBrush}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="点击卡片查看详细" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
 
             <!-- ============ 全部账号近 3 天用量（按账号堆叠） ============ -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="14">
-                    <TextBlock Text="全部账号近 3 天用量（按账号堆叠）" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="全部账号近 3 天用量" FontSize="15" FontWeight="SemiBold"/>
                     <controls:UsageChartControl Trend="{Binding CombinedTrend}" ShowAxis="True" Height="180"/>
                 </StackPanel>
             </Border>
@@ -109,14 +137,14 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="150"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Width="34" Height="34" CornerRadius="8" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}">
+                                <Border Width="38" Height="38" CornerRadius="12" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}">
                                     <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="15"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
-                                        <Border CornerRadius="4" Padding="6,1" BorderThickness="1" BorderBrush="{ThemeResource CardBorderBrush}">
+                                        <Border CornerRadius="10" Padding="8,2" Background="{ThemeResource SoftPanelBackgroundBrush}" BorderThickness="1" BorderBrush="{ThemeResource CardBorderBrush}">
                                             <TextBlock Text="{Binding PlanBadge}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}"/>
                                         </Border>
                                     </StackPanel>

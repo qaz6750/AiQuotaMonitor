@@ -13,7 +13,7 @@
 
             <StackPanel Spacing="3">
                 <TextBlock Text="设置" FontSize="20" FontWeight="SemiBold"/>
-                <TextBlock Text="管理多个智谱账号、套餐类型与刷新偏好。所有凭据仅本地加密保存。" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                <TextBlock Text="按 Coding Plan、Token Plan、API 按量付费分类管理多平台账号。所有凭据仅本地加密保存。" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
             </StackPanel>
 
             <!-- ===== 账号管理 ===== -->
@@ -27,7 +27,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2">
                             <TextBlock Text="账号管理" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="可添加多个 API Key 或为将来的多平台预留。点击「设为当前」切换数据来源。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <TextBlock Text="已接入：Coding Plan（智谱 GLM、Kimi Code、GitHub Copilot）、Token Plan（小米 MiMo、MiniMax）、按量付费（Factory Droid）。仅展示确认可查询用量的平台。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Grid.Column="1" Command="{Binding StartAddCommand}" Padding="14,7" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -51,19 +51,20 @@
                             </StackPanel>
 
                             <StackPanel Spacing="4">
-                                <TextBlock Text="提供商" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
-                                <ComboBox SelectedIndex="{Binding EditingProviderIndex, Mode=TwoWay}" MinWidth="260">
-                                    <x:String>智谱 GLM（open.bigmodel.cn）</x:String>
-                                    <x:String>小米 MiMo（platform.xiaomimimo.com）</x:String>
-                                                                    </ComboBox>
-                            </StackPanel>
-
-                            <StackPanel Spacing="4">
                                 <TextBlock Text="套餐类型" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
                                 <ComboBox SelectedIndex="{Binding EditingPlanIndex, Mode=TwoWay}" MinWidth="260">
                                     <x:String>Coding Plan</x:String>
                                     <x:String>Token Plan</x:String>
+                                    <x:String>API 按量付费</x:String>
                                 </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="提供商" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <ComboBox ItemsSource="{Binding ProviderOptions}"
+                                          DisplayMemberPath="DisplayName"
+                                          SelectedIndex="{Binding EditingProviderIndex, Mode=TwoWay}"
+                                          MinWidth="260"/>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
@@ -71,7 +72,12 @@
                                     <TextBlock Text="{Binding CredentialLabel}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                                     <Button Command="{Binding FetchCookieCommand}" Content="一键获取" Padding="10,3" FontSize="11" Visibility="{Binding IsCookieProvider, Converter={StaticResource BoolToVisibility}}"/>
                                 </StackPanel>
-                                <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="智谱填 API Key；MiMo 填 cookie 值"/>
+                                <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按所选提供商填写 API Key、Token、Subscription Key、GitHub Token 或 Cookie"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4" Visibility="{Binding ShowBaseUrl, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="用量接口 / Base URL" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBox Text="{Binding EditingBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="默认使用所选提供商的官方用量接口"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="10">

@@ -27,7 +27,8 @@ public partial class OverviewViewModel : ViewModelBase
 
     /// <summary>当前账号的套餐类型（用于 Token Plan 提示等）。</summary>
     public PlanType ActivePlanType => _settings.ActivePlanType;
-    public bool IsTokenPlan => Caps.IsCookieAuth;
+    public bool IsTokenPlan => ActivePlanType == PlanType.Token;
+    public bool IsPayAsYouGoPlan => ActivePlanType == PlanType.PayAsYouGo;
 
     // ===== 多账号概览 =====
     public ObservableCollection<AccountSummaryItem> Summaries { get; } = new();
@@ -64,7 +65,6 @@ public partial class OverviewViewModel : ViewModelBase
         RefreshAccounts();
         OnUpdated();
         OnLoadingChanged();
-        _ = LoadAsync();
         _ = LoadSummariesAsync();
     }
 
@@ -85,6 +85,7 @@ public partial class OverviewViewModel : ViewModelBase
             }
             OnPropertyChanged(nameof(ActivePlanType));
             OnPropertyChanged(nameof(IsTokenPlan));
+            OnPropertyChanged(nameof(IsPayAsYouGoPlan));
             OnPropertyChanged(nameof(PrimaryQuotaLabel));
             OnPropertyChanged(nameof(SecondaryQuotaLabel));
             OnPropertyChanged(nameof(Caps));
@@ -239,9 +240,11 @@ public partial class OverviewViewModel : ViewModelBase
         Summaries.Clear();
         foreach (var a in accounts) Summaries.Add(new AccountSummaryItem { Account = a });
 
+        using var gate = new SemaphoreSlim(3);
         var results = await Task.WhenAll(accounts.Select(async a =>
         {
             if (!a.HasKey) return (a, (UsageResult?)null);
+            await gate.WaitAsync();
             try
             {
                 // 活跃账号复用 UsageDataService 缓存，避免重复查询
@@ -249,6 +252,7 @@ public partial class OverviewViewModel : ViewModelBase
                 return (a, await PlatformClientFactory.Get(a).QueryUsageAsync(a.ApiKey, a.BaseUrl, _settings.EnableRetry));
             }
             catch (Exception ex) { AppLogger.Swallowed("LoadSummaries", ex); return (a, (UsageResult?)null); }
+            finally { gate.Release(); }
         }));
 
         long total = 0;
@@ -565,6 +569,9 @@ public partial class OverviewViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(CurrentTrend));
         OnPropertyChanged(nameof(CurrentTrendLabel));
+        OnPropertyChanged(nameof(ActivePlanType));
+        OnPropertyChanged(nameof(IsTokenPlan));
+        OnPropertyChanged(nameof(IsPayAsYouGoPlan));
     }
 
     /// <summary>构建今日全天 24 小时用量（0–23 点，未到的时段补 0）。</summary>

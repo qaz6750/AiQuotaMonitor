@@ -15,13 +15,24 @@ public interface IPlatformClient
 /// <summary>按平台 id 解析客户端。</summary>
 public static class PlatformClientFactory
 {
+    private static readonly GlmClient Glm = new();
+    private static readonly KimiClient Kimi = new();
+    private static readonly MiniMaxClient MiniMax = new();
+    private static readonly MiMoClient MiMo = new();
+    private static readonly CopilotClient Copilot = new();
+    private static readonly FactoryClient Factory = new();
+
     /// <summary>根据账号的 ProviderId 获取对应客户端。</summary>
     public static IPlatformClient Get(GlmAccount account)
     {
         return account.ProviderId switch
         {
-            "mimo" => new MiMoClient(),
-            _ => new GlmClient(),
+            "kimi" => Kimi,
+            "minimax" => MiniMax,
+            "mimo" => MiMo,
+            "copilot" => Copilot,
+            "factory" => Factory,
+            _ => Glm,
         };
     }
 }

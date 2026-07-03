@@ -12,7 +12,6 @@ public sealed class UsageDataService
 {
     public static UsageDataService Instance { get; } = new();
 
-    private readonly GlmClient _client = new();
     private DispatcherTimer? _timer;
     private string? _lastAccountId;
     private SemaphoreSlim? _refreshLock;
