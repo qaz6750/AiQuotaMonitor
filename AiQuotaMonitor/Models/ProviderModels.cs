@@ -20,6 +20,8 @@ public sealed class ProviderCapabilities
     public bool HasMcp { get; init; } = true;
     /// <summary>是否 Cookie 鉴权（非 API Key）。</summary>
     public bool IsCookieAuth { get; init; } = false;
+    /// <summary>是否支持本机自动发现凭据（如 gh CLI token）。</summary>
+    public bool SupportsCredentialAutoFetch { get; init; } = false;
     /// <summary>凭据标签（"API Key" 或 "Cookie"）。</summary>
     public string CredentialLabel { get; init; } = "API Key";
     /// <summary>主配额标签（"5 小时额度" 或 "套餐额度"）。</summary>
@@ -148,6 +150,7 @@ public static class Providers
             HasTrend = false,
             HasCost = false,
             HasEstimate = false,
+            SupportsCredentialAutoFetch = true,
             CredentialLabel = "GitHub Token",
             PrimaryQuotaLabel = "Premium Requests",
             SecondaryQuotaLabel = "Chat 配额",

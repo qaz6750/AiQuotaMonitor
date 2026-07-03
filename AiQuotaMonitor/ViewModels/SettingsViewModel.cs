@@ -81,6 +81,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     /// <summary>当前编辑的提供商是否为 Cookie 鉴权（MiMo，隐藏 URL）。</summary>
     public bool IsCookieProvider => Providers.GetById(EditingProviderId).Capabilities.IsCookieAuth;
+    public bool CanAutoFetchCredential => IsCookieProvider || Providers.GetById(EditingProviderId).Capabilities.SupportsCredentialAutoFetch;
     public string CredentialLabel => Providers.GetById(EditingProviderId).Capabilities.CredentialLabel;
 
     /// <summary>当前编辑的提供商是否需要 URL 输入（Cookie 鉴权的隐藏）。</summary>
@@ -90,6 +91,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void NotifyProviderChanged()
     {
         OnPropertyChanged(nameof(IsCookieProvider));
+        OnPropertyChanged(nameof(CanAutoFetchCredential));
         OnPropertyChanged(nameof(ShowBaseUrl));
         OnPropertyChanged(nameof(CredentialLabel));
         OnPropertyChanged(nameof(EditingProviderIndex));
@@ -122,12 +124,25 @@ public partial class SettingsViewModel : ViewModelBase
         NotifyProviderChanged();
     }
 
-    /// <summary>一键获取 cookie：打开内置 WebView2 登录窗口，登录后自动提取。</summary>
+    /// <summary>一键获取凭据：MiMo 打开 WebView2 提取 Cookie；Copilot 从 gh CLI 读取 token。</summary>
     [RelayCommand]
-    private async Task FetchCookieAsync()
+    private async Task FetchCredentialAsync()
     {
         try
         {
+            if (EditingProviderId.Equals("copilot", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = await TryGetGitHubTokenAsync();
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    SaveMessage = "未找到 GitHub Token。请先安装 GitHub CLI 并运行 gh auth login，或手动粘贴 token。";
+                    return;
+                }
+                EditingApiKey = token.Trim();
+                SaveMessage = "✓ 已从 GitHub CLI 获取 token";
+                return;
+            }
+
             var url = Providers.GetById(EditingProviderId).DocsUrl ?? "https://platform.xiaomimimo.com/console/plan-manage";
             var win = new MiMoLoginWindow(url);
             win.CookieReady += cookie =>
@@ -142,6 +157,41 @@ public partial class SettingsViewModel : ViewModelBase
             await win.StartAsync();
         }
         catch (Exception ex) { SaveMessage = "无法打开登录窗口：" + ex.Message; }
+    }
+
+    private static async Task<string?> TryGetGitHubTokenAsync()
+    {
+        var candidates = OperatingSystem.IsWindows()
+            ? new[] { "gh.exe", "gh" }
+            : new[] { "gh" };
+
+        foreach (var fileName in candidates)
+        {
+            try
+            {
+                using var p = new System.Diagnostics.Process();
+                p.StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = "auth token",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                };
+                p.Start();
+                var outputTask = p.StandardOutput.ReadToEndAsync();
+                await p.WaitForExitAsync();
+                if (p.ExitCode == 0)
+                {
+                    var token = (await outputTask).Trim();
+                    if (!string.IsNullOrWhiteSpace(token)) return token;
+                }
+            }
+            catch { }
+        }
+        return Environment.GetEnvironmentVariable("GITHUB_TOKEN")
+               ?? Environment.GetEnvironmentVariable("GH_TOKEN");
     }
 
     /// <summary>ComboBox 绑定用：0=智谱 GLM，1=小米 MiMo，2=自定义。</summary>
