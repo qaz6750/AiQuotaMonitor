@@ -88,7 +88,12 @@ public sealed class CopilotClient : IPlatformClient
         if (!monthly.TryGetProperty("chat", out var mChat) || !limited.TryGetProperty("chat", out var lChat)) return null;
         var entitlement = Num(mChat) ?? 0;
         var remaining = Num(lChat) ?? 0;
-        var json = $$"{"entitlement":{{entitlement}},"remaining":{{remaining}},"percent_remaining":{{(entitlement > 0 ? remaining / entitlement * 100 : 0)}}}";
+        var json = JsonSerializer.Serialize(new
+        {
+            entitlement,
+            remaining,
+            percent_remaining = entitlement > 0 ? remaining / entitlement * 100 : 0,
+        });
         using var doc = JsonDocument.Parse(json);
         return doc.RootElement.Clone();
     }
