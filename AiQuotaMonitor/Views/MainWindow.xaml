@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="AiQuotaMonitor.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid Background="{ThemeResource PageBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 自定义标题栏（半透明模糊背景，融入 Mica） -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="44" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border Background="{ThemeResource TitleBarBrush}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
+                <TextBlock Text="📊" FontSize="15" VerticalAlignment="Center"/>
+                <TextBlock Text="AI Quota Monitor" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <NavigationView Grid.Row="1"
+            x:Name="NavView"
+            PaneDisplayMode="Left"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            OpenPaneLength="176"
+            SelectionChanged="NavView_SelectionChanged"
+            Background="Transparent">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Tag="overview" Icon="Home" Content="概览"/>
+                <NavigationViewItem Tag="stats" Icon="AllApps" Content="统计"/>
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Tag="settings" Icon="Setting" Content="设置"/>
+            </NavigationView.FooterMenuItems>
+            <Frame x:Name="NavFrame" Background="Transparent"/>
+        </NavigationView>
+    </Grid>
+</Window>

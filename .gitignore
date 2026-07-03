@@ -1,0 +1,20 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM64/
+[Aa]pp[Pp]ackages/
+[Bb]undleArtifacts/
+# Generated unpaged/packaged artifacts
+*.appx
+*.msix
+*.pfx
+.vs/

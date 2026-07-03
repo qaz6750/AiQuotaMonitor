@@ -1,0 +1,46 @@
+using AiQuotaMonitor.Helpers;
+using Microsoft.UI.Xaml.Media;
+
+namespace AiQuotaMonitor.Models;
+
+/// <summary>总览页单个账号的用量概况。</summary>
+public sealed class AccountSummaryItem
+{
+    public GlmAccount Account { get; init; } = new();
+
+    // 原始数据
+    public long TodayTokens { get; set; }
+    public double FiveHourPct { get; set; }
+    public double WeeklyPct { get; set; }
+    public long PrimaryUsed { get; set; }
+    public long PrimaryLimit { get; set; }
+    public long SecondaryUsed { get; set; }
+    public long SecondaryLimit { get; set; }
+
+    // 是否 Token Plan（显示 token 量而非百分比）
+    public bool IsTokenPlan => Account.Provider.Capabilities.IsCookieAuth;
+
+    // 展示文本
+    public string TodayTokensText => TodayTokens > 0 ? Formatters.FormatTokens(TodayTokens) : "—";
+    public string FiveHourPctText => $"{FiveHourPct:F0}%";
+    public string WeeklyPctText => $"{WeeklyPct:F0}%";
+
+    // 主/次配额显示（Token Plan 显示 token 量，Coding Plan 显示百分比）
+    public string PrimaryDisplay => IsTokenPlan && PrimaryLimit > 0
+        ? $"{Formatters.FormatTokens(PrimaryUsed)}"
+        : FiveHourPctText;
+    public string SecondaryDisplay => IsTokenPlan && SecondaryLimit > 0
+        ? $"{Formatters.FormatTokens(SecondaryUsed)}"
+        : WeeklyPctText;
+    public string PrimaryLabel => Account.Provider.Capabilities.PrimaryQuotaLabel.Replace("额度", "");
+    public string SecondaryLabel => Account.Provider.Capabilities.SecondaryQuotaLabel.Replace("额度", "");
+
+    public SolidColorBrush BarBrush { get; set; } = new(Windows.UI.Color.FromArgb(255, 0x9C, 0xA3, 0xAF));
+    public bool HasError { get; set; }
+
+    public string ProviderName => Account.Provider.Name;
+    public string ProviderGlyph => Account.Provider.Glyph;
+    public string ProviderColor => Account.Provider.BrandColor;
+    public string Name => Account.DisplayLabel;
+    public string PlanBadge => Account.PlanBadge;
+}

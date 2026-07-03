@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="AiQuotaMonitor.Views.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiQuotaMonitor.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <ScrollViewer Padding="0">
+        <StackPanel Padding="24,6,24,20" Spacing="10">
+
+            <!-- ============ Header ============ -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="5">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="用量总览" FontSize="20" FontWeight="SemiBold"/>
+                        <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding LastUpdatedText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <ProgressRing Width="18" Height="18" IsActive="{Binding IsLoading}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Command="{Binding RefreshCommand}" Padding="14,7" Style="{StaticResource AccentButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE72C;" FontSize="13"/>
+                            <TextBlock Text="刷新" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ============ 错误提示 ============ -->
+            <InfoBar
+                IsOpen="{Binding HasError}"
+                Severity="Error"
+                Title="刷新失败"
+                Message="{Binding ErrorMessage}"
+                IsClosable="False"/>
+
+            <!-- ============ 未配置账号提示 ============ -->
+            <InfoBar
+                IsOpen="{Binding HasNoAccount}"
+                Severity="Informational"
+                Title="尚未配置账号"
+                Message="添加一个 API Key 即可开始监控用量。"
+                IsClosable="False">
+                <InfoBar.ActionButton>
+                    <Button Command="{Binding GoSettingsCommand}" Content="去设置" Padding="14,6"/>
+                </InfoBar.ActionButton>
+            </InfoBar>
+
+            <!-- ============ Token Plan 说明 ============ -->
+            <InfoBar
+                IsOpen="{Binding IsTokenPlan}"
+                Severity="Informational"
+                Title="Token Plan（按量计费模式）"
+                Message="当前账号为 Token Plan（按量计费）。配额百分比与 token 用量来自用量接口。"
+                IsClosable="False"/>
+
+            <!-- ============ 多账号概览：顶部合计 + 每账号一行 ============ -->
+            <Border Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="全部账号今日合计" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding TotalTodayTokensText}" FontSize="30" FontWeight="Bold"/>
+                            <TextBlock Text="tokens" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Bottom" Margin="0,0,0,5"/>
+                            <ProgressRing Width="16" Height="16" IsActive="{Binding IsLoadingAll}" Margin="8,0,0,5"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding AccountCount}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        <TextBlock Text="个账号 · 点击查看详细" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ============ 全部账号近 3 天用量（按账号堆叠） ============ -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="全部账号近 3 天用量（按账号堆叠）" FontSize="15" FontWeight="SemiBold"/>
+                    <controls:UsageChartControl Trend="{Binding CombinedTrend}" ShowAxis="True" Height="180"/>
+                </StackPanel>
+            </Border>
+
+            <ItemsControl x:Name="SummaryList" ItemsSource="{Binding Summaries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Command="{Binding DataContext.OpenAccountCommand, ElementName=SummaryList}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource CardButtonStyle}"
+                                Padding="16,12" Margin="0,0,0,10">
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="34" Height="34" CornerRadius="8" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}">
+                                    <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="15"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                                        <Border CornerRadius="4" Padding="6,1" BorderThickness="1" BorderBrush="{ThemeResource CardBorderBrush}">
+                                            <TextBlock Text="{Binding PlanBadge}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock FontSize="11" Foreground="{ThemeResource SubtleTextBrush}">
+                                        <Run Text="今日"/><Run Text=" "/><Run Text="{Binding TodayTokensText}"/><Run Text=" tokens"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <StackPanel Spacing="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding PrimaryDisplay}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="5h" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding SecondaryDisplay}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="周" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <controls:SlimProgressBar Grid.Column="3" Value="{Binding FiveHourPct}" FillBrush="{Binding BarBrush}" TrackHeight="6" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+                    </StackPanel>
+    </ScrollViewer>
+</Page>

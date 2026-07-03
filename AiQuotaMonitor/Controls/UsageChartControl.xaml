@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="AiQuotaMonitor.Controls.UsageChartControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <!-- 按模型堆叠柱状图（参考 cc-bar Statistics 按模型堆叠） -->
+    <Grid>
+        <Canvas x:Name="PlotCanvas"/>
+        <TextBlock x:Name="EmptyText"
+                   Text="暂无数据"
+                   Opacity="0.45"
+                   FontSize="12"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Visibility="Collapsed"/>
+    </Grid>
+</UserControl>

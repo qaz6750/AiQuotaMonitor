@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="AiQuotaMonitor.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:AiQuotaMonitor.Helpers">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 全局主题色资源：随系统暗色模式自动切换 -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="PageBackgroundColor">#F5F6F8</Color>
+                    <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+                    <Color x:Key="CardBorderColor">#E8EAED</Color>
+                    <Color x:Key="SubtleTextColor">#6B7280</Color>
+                    <Color x:Key="SecondaryTextColor">#374151</Color>
+                    <Color x:Key="CardStrokeColor">#00000000</Color>
+                    <Color x:Key="TitleBarBackgroundColor">#F5F6F8</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="PageBackgroundColor">#0B0B0F</Color>
+                    <Color x:Key="CardBackgroundColor">#16161C</Color>
+                    <Color x:Key="CardBorderColor">#26262E</Color>
+                    <Color x:Key="SubtleTextColor">#9CA3AF</Color>
+                    <Color x:Key="SecondaryTextColor">#D1D5DB</Color>
+                    <Color x:Key="CardStrokeColor">#00000000</Color>
+                    <Color x:Key="TitleBarBackgroundColor">#0B0B0F</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <!-- 更柔和的强调蓝（覆盖系统默认深蓝，明暗通用）。内容项须统一位于属性元素之后。 -->
+            <Color x:Key="SystemAccentColor">#0EA5E9</Color>
+            <Color x:Key="SystemAccentColorLight1">#38BDF8</Color>
+            <Color x:Key="SystemAccentColorLight2">#7DD3FC</Color>
+            <Color x:Key="SystemAccentColorLight3">#BAE6FD</Color>
+            <Color x:Key="SystemAccentColorDark1">#0284C7</Color>
+            <Color x:Key="SystemAccentColorDark2">#0369A1</Color>
+            <Color x:Key="SystemAccentColorDark3">#075985</Color>
+
+            <SolidColorBrush x:Key="PageBackgroundBrush" Color="{ThemeResource PageBackgroundColor}" />
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="{ThemeResource CardBackgroundColor}" />
+            <SolidColorBrush x:Key="CardBorderBrush" Color="{ThemeResource CardBorderColor}" />
+            <SolidColorBrush x:Key="SubtleTextBrush" Color="{ThemeResource SubtleTextColor}" />
+            <SolidColorBrush x:Key="SecondaryTextBrush" Color="{ThemeResource SecondaryTextColor}" />
+            <SolidColorBrush x:Key="TitleBarBrush" Color="{ThemeResource TitleBarBackgroundColor}" Opacity="0.35" />
+
+            <!-- 配额颜色（固定，明暗通用） -->
+            <Color x:Key="QuotaGoodColor">#3FB950</Color>
+            <Color x:Key="QuotaWarnColor">#E0A800</Color>
+            <Color x:Key="QuotaDangerColor">#F0883E</Color>
+            <SolidColorBrush x:Key="QuotaGoodBrush" Color="{ThemeResource QuotaGoodColor}" />
+            <SolidColorBrush x:Key="QuotaWarnBrush" Color="{ThemeResource QuotaWarnColor}" />
+            <SolidColorBrush x:Key="QuotaDangerBrush" Color="{ThemeResource QuotaDangerColor}" />
+
+            <!-- 圆角卡片样式 -->
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="20" />
+            </Style>
+
+            <Style x:Key="CardButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="20" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            </Style>
+
+            <Style x:Key="TitleText" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
+                <Setter Property="FontSize" Value="18" />
+            </Style>
+
+            <Style x:Key="BigNumberText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="34" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+
+            <!-- 全局值转换器 -->
+            <helpers:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+            <helpers:NotNullToVisibilityConverter x:Key="NotNullToVisibility"/>
+            <helpers:StringToVisibilityConverter x:Key="StringToVisibility"/>
+            <helpers:HexToBrushConverter x:Key="HexToBrush"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

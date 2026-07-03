@@ -1,0 +1,79 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v0.0.0'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [x64, arm64]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Windows App SDK workload
+        run: |
+          dotnet workload install maui-windows
+
+      - name: Publish (${{ matrix.platform }})
+        run: |
+          dotnet publish AiQuotaMonitor/AiQuotaMonitor.csproj `
+            -c Release `
+            -p:Platform=${{ matrix.platform }} `
+            -r win-${{ matrix.platform }} `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -p:WindowsPackageType=None `
+            -o publish/${{ matrix.platform }}
+
+      - name: Zip artifact
+        run: |
+          $version = "${{ github.ref_name }}"
+          if ($version -eq "") { $version = "${{ github.event.inputs.version }}" }
+          Compress-Archive -Path publish/${{ matrix.platform }}/* -DestinationPath AiQuotaMonitor-${version}-win-${{ matrix.platform }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AiQuotaMonitor-win-${{ matrix.platform }}
+          path: publish/${{ matrix.platform }}
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: AiQuotaMonitor-*-win-*.zip
+          draft: true
+          generate_release_notes: true
+          body: |
+            ## AI Quota Monitor ${{ github.ref_name }}
+
+            ### 下载
+            - **x64**: `AiQuotaMonitor-${{ github.ref_name }}-win-x64.zip`
+            - **ARM64**: `AiQuotaMonitor-${{ github.ref_name }}-win-arm64.zip`
+
+            ### 使用
+            1. 下载对应架构的 zip 并解压
+            2. 运行 `AiQuotaMonitor.exe`
+            3. 首次启动添加账号（智谱 GLM / 小米 MiMo）
+
+            ### 系统要求
+            - Windows 10 19041+ / Windows 11
+            - WebView2 Runtime（Windows 11 内置）
