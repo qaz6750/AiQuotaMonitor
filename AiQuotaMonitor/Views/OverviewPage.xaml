@@ -23,6 +23,7 @@
                         <TextBlock Text="仪表盘" FontSize="22" FontWeight="SemiBold"/>
                         <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding LastUpdatedText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <ProgressRing Width="18" Height="18" IsActive="{Binding IsLoading}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
