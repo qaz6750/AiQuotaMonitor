@@ -14,6 +14,6 @@ public sealed partial class OverviewPage : Page
         this.InitializeComponent();
         ViewModel = new OverviewViewModel();
         DataContext = ViewModel;
-        Unloaded += (_, _) => ViewModel.Detach();
+        // 页面常驻（NavigationCacheMode=Enabled），订阅随 ViewModel 持久保留，不在 Unloaded 取消订阅。
     }
 }

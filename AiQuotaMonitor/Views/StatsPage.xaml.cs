@@ -24,7 +24,7 @@ public sealed partial class StatsPage : Page
             }
         };
         StatsChart.BarTapped += idx => ViewModel.ApplyBarToRangeStart(idx);
-        Unloaded += (_, _) => ViewModel.Detach();
+        // 页面常驻（NavigationCacheMode=Enabled），订阅随 ViewModel 持久保留，不在 Unloaded 取消订阅。
     }
 
     private void SetRangeRadio(TrendRange r)
