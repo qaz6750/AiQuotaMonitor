@@ -172,7 +172,7 @@ internal static class BalanceHttp
         var ub = new UriBuilder(b);
         var port = ub.Uri.IsDefaultPort ? string.Empty : ":" + ub.Port;
         var path = ub.Uri.AbsolutePath.TrimEnd('/');
-        return $"{ub.Scheme}://{ub.Host}{port}{path}";
+        return SharedHttp.EnsureHttps($"{ub.Scheme}://{ub.Host}{port}{path}");
     }
 
     public static QuotaInfo MoneyQuota(string label, double used, double total, string currency)

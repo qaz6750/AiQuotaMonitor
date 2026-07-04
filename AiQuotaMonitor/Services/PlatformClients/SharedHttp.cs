@@ -22,4 +22,11 @@ internal static class SharedHttp
     /// <summary>基于共享 handler 创建带超时的客户端（handler 不被 dispose）。</summary>
     public static HttpClient Create(TimeSpan? timeout = null)
         => new(Handler, disposeHandler: false) { Timeout = timeout ?? TimeSpan.FromSeconds(30) };
+
+    public static string EnsureHttps(string url)
+    {
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("为保护凭据安全，仅支持 HTTPS 接口地址。");
+        return url;
+    }
 }

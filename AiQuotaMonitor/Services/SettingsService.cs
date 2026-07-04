@@ -51,6 +51,7 @@ public sealed class SettingsService
     };
 
     private readonly List<GlmAccount> _accounts = new();
+    private string? _lastSavedJson;
 
     /// <summary>全部已保存的账号。</summary>
     public IReadOnlyList<GlmAccount> Accounts => _accounts;
@@ -158,9 +159,14 @@ public sealed class SettingsService
             {
                 Save();
             }
+            else
+            {
+                _lastSavedJson = JsonSerializer.Serialize(CreateSnapshot(), JsonOpts);
+            }
         }
-        catch
+        catch (Exception ex)
         {
+            AppLogger.Swallowed("设置加载", ex);
             LoadDefaults();
         }
     }
@@ -281,34 +287,44 @@ public sealed class SettingsService
         try
         {
             Directory.CreateDirectory(Dir);
-            var snap = new SettingsSnapshot
-            {
-                Accounts = _accounts.Select(a => new AccountRecord
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    ProviderId = a.ProviderId,
-                    PlanType = PlanTypeExtensions.Encode(a.PlanType),
-                    ApiKeyEnc = ProtectBase64(a.ApiKey),
-                    BaseUrl = a.BaseUrl,
-                    CreatedAt = a.CreatedAt,
-                }).ToList(),
-                ActiveAccountId = ActiveAccount?.Id,
-                RefreshInterval = RefreshIntervalMinutes,
-                EnableRetry = EnableRetry,
-                AutoRefresh = AutoRefresh,
-                WarnOnHighUsage = WarnOnHighUsage,
-                AppTheme = AppTheme,
-                WarnThreshold = WarnThreshold,
-            };
+            var snap = CreateSnapshot();
             var json = JsonSerializer.Serialize(snap, JsonOpts);
-            File.WriteAllText(FilePath, json);
+
+            // 避免偏好页多项设置连续保存时重复写盘。
+            if (string.Equals(json, _lastSavedJson, StringComparison.Ordinal)) return;
+
+            var tmp = FilePath + ".tmp";
+            File.WriteAllText(tmp, json);
+            if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
+            else File.Move(tmp, FilePath);
+            _lastSavedJson = json;
         }
-        catch
+        catch (Exception ex)
         {
-            // 写入失败不应中断应用
+            AppLogger.Error("设置保存失败", ex);
         }
     }
+
+    private SettingsSnapshot CreateSnapshot() => new()
+    {
+        Accounts = _accounts.Select(a => new AccountRecord
+        {
+            Id = a.Id,
+            Name = a.Name,
+            ProviderId = a.ProviderId,
+            PlanType = PlanTypeExtensions.Encode(a.PlanType),
+            ApiKeyEnc = ProtectBase64(a.ApiKey),
+            BaseUrl = a.BaseUrl,
+            CreatedAt = a.CreatedAt,
+        }).ToList(),
+        ActiveAccountId = ActiveAccount?.Id,
+        RefreshInterval = RefreshIntervalMinutes,
+        EnableRetry = EnableRetry,
+        AutoRefresh = AutoRefresh,
+        WarnOnHighUsage = WarnOnHighUsage,
+        AppTheme = AppTheme,
+        WarnThreshold = WarnThreshold,
+    };
 
     // ===== DPAPI 加解密（保留原实现） =====
 
@@ -321,9 +337,10 @@ public sealed class SettingsService
             var cipher = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
             return Convert.ToBase64String(cipher);
         }
-        catch
+        catch (Exception ex)
         {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(plain));
+            AppLogger.Error("凭据加密失败", ex);
+            throw new CryptographicException("凭据加密失败，已阻止以弱保护形式保存。", ex);
         }
     }
 

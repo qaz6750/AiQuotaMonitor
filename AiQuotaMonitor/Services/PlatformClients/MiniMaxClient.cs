@@ -71,7 +71,7 @@ public sealed class MiniMaxClient : IPlatformClient
         {
             var b = baseUrl.Trim();
             if (!b.StartsWith("http", StringComparison.OrdinalIgnoreCase)) b = "https://" + b;
-            if (b.Contains("token_plan/remains", StringComparison.OrdinalIgnoreCase)) yield return b;
+            if (b.Contains("token_plan/remains", StringComparison.OrdinalIgnoreCase)) yield return SharedHttp.EnsureHttps(b);
         }
         foreach (var endpoint in DefaultEndpoints) yield return endpoint;
     }

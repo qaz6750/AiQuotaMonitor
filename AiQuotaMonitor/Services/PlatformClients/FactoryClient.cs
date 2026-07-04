@@ -88,7 +88,7 @@ public sealed class FactoryClient : IPlatformClient
             if (!b.StartsWith("http", StringComparison.OrdinalIgnoreCase)) b = "https://" + b;
             var ub = new UriBuilder(b);
             var port = ub.Uri.IsDefaultPort ? string.Empty : ":" + ub.Port;
-            yield return $"{ub.Scheme}://{ub.Host}{port}";
+            yield return SharedHttp.EnsureHttps($"{ub.Scheme}://{ub.Host}{port}");
         }
         foreach (var host in DefaultHosts) yield return host;
     }

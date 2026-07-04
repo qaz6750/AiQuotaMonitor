@@ -236,7 +236,7 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>从导航参数初始化（WelcomePage 传入 PlanType 时进入新建模式）。</summary>
     public void ApplyNavigationParameter(object? param)
     {
-        StartAdd();
+        if (param is not null) StartAdd();
     }
 
     [RelayCommand]

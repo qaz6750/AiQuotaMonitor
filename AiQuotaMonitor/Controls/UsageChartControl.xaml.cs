@@ -73,7 +73,7 @@ public sealed partial class UsageChartControl : UserControl
     private void Draw()
     {
         // 相同数据+尺寸跳过重绘（性能优化）
-        var sig = $"{PlotCanvas.ActualWidth:F0}x{PlotCanvas.ActualHeight:F0}|{Trend?.XTime?.Count ?? 0}|{ShowAxis}";
+        var sig = $"{PlotCanvas.ActualWidth:F0}x{PlotCanvas.ActualHeight:F0}|{Trend?.XTime?.Count ?? 0}|{Trend?.TotalTokens ?? 0:F0}|{Trend?.TotalCalls ?? 0:F0}|{ShowAxis}";
         if (sig == _lastDrawSig) return;
         _lastDrawSig = sig;
 

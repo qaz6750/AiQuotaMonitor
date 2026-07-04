@@ -69,7 +69,7 @@ public sealed class KimiClient : IPlatformClient
         {
             var b = baseUrl.Trim();
             if (!b.StartsWith("http", StringComparison.OrdinalIgnoreCase)) b = "https://" + b;
-            if (b.Contains("/usages", StringComparison.OrdinalIgnoreCase)) yield return b;
+            if (b.Contains("/usages", StringComparison.OrdinalIgnoreCase)) yield return SharedHttp.EnsureHttps(b);
         }
         foreach (var endpoint in DefaultEndpoints) yield return endpoint;
     }

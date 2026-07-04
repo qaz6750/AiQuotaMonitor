@@ -152,6 +152,6 @@ public sealed class ClaudeClient : IPlatformClient
         if (!b.StartsWith("http", StringComparison.OrdinalIgnoreCase)) b = "https://" + b;
         var ub = new UriBuilder(b);
         var port = ub.Uri.IsDefaultPort ? string.Empty : ":" + ub.Port;
-        return $"{ub.Scheme}://{ub.Host}{port}";
+        return SharedHttp.EnsureHttps($"{ub.Scheme}://{ub.Host}{port}");
     }
 }

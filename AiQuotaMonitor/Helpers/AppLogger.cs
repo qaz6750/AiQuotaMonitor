@@ -41,7 +41,7 @@ public static class AppLogger
             lock (_lock)
             {
                 _writer?.WriteLine(line);
-                _writer?.Flush();
+                if (level is "ERROR" or "WARN") _writer?.Flush();
             }
         }
         catch { /* 日志本身不应抛出 */ }
@@ -63,7 +63,7 @@ public static class AppLogger
         {
             foreach (var f in Directory.GetFiles(LogDir, "app-*.log"))
             {
-                if (File.GetCreationTime(f) < today.AddDays(-7))
+                if (File.GetLastWriteTime(f) < today.AddDays(-7))
                     File.Delete(f);
             }
         }
