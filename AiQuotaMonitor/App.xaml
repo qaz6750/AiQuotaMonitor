@@ -20,9 +20,9 @@
                     <Color x:Key="SecondaryTextColor">#243044</Color>
                     <Color x:Key="CardStrokeColor">#00000000</Color>
                     <Color x:Key="TitleBarBackgroundColor">#EEF4FB</Color>
-                    <Color x:Key="SidebarBackgroundColor">#EDF7F4</Color>
-                    <Color x:Key="SoftPanelBackgroundColor">#EFF4FA</Color>
-                    <Color x:Key="NavSelectedBackgroundColor">#D4EEFA</Color>
+                    <Color x:Key="SidebarBackgroundColor">#F7F9FC</Color>
+                    <Color x:Key="SoftPanelBackgroundColor">#EEF3F8</Color>
+                    <Color x:Key="NavSelectedBackgroundColor">#E7F1FF</Color>
                     <Color x:Key="GlowColor">#3358F5B8</Color>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
@@ -33,9 +33,9 @@
                     <Color x:Key="SecondaryTextColor">#E4E7EC</Color>
                     <Color x:Key="CardStrokeColor">#00000000</Color>
                     <Color x:Key="TitleBarBackgroundColor">#111315</Color>
-                    <Color x:Key="SidebarBackgroundColor">#101816</Color>
-                    <Color x:Key="SoftPanelBackgroundColor">#1A1B1F</Color>
-                    <Color x:Key="NavSelectedBackgroundColor">#16303A</Color>
+                    <Color x:Key="SidebarBackgroundColor">#121417</Color>
+                    <Color x:Key="SoftPanelBackgroundColor">#1B1D22</Color>
+                    <Color x:Key="NavSelectedBackgroundColor">#1C2A3A</Color>
                     <Color x:Key="GlowColor">#663B82F6</Color>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -55,7 +55,7 @@
             <SolidColorBrush x:Key="SubtleTextBrush" Color="{ThemeResource SubtleTextColor}" />
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="{ThemeResource SecondaryTextColor}" />
             <SolidColorBrush x:Key="TitleBarBrush" Color="{ThemeResource TitleBarBackgroundColor}" Opacity="0.35" />
-            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{ThemeResource SidebarBackgroundColor}" Opacity="0.78" />
+            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{ThemeResource SidebarBackgroundColor}" Opacity="0.92" />
             <SolidColorBrush x:Key="NavSelectedBackgroundBrush" Color="{ThemeResource NavSelectedBackgroundColor}" />
             <SolidColorBrush x:Key="SoftPanelBackgroundBrush" Color="{ThemeResource SoftPanelBackgroundColor}" />
             <SolidColorBrush x:Key="CardHoverBrush" Color="{ThemeResource NavSelectedBackgroundColor}" Opacity="0.45" />
@@ -125,8 +125,8 @@
                             <Border x:Name="Root"
                                     Background="Transparent"
                                     BorderBrush="Transparent"
-                                    BorderThickness="3,0,0,0"
-                                    CornerRadius="10"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
                                     Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
                                 <VisualStateManager.VisualStateGroups>
@@ -155,7 +155,7 @@
                                                     <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource NavSelectedBackgroundBrush}"/>
                                                 </ObjectAnimationUsingKeyFrames>
                                                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#0EA5E9"/>
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#550EA5E9"/>
                                                 </ObjectAnimationUsingKeyFrames>
                                             </Storyboard>
                                         </VisualState>

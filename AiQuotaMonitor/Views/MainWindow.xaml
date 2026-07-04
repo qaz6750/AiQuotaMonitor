@@ -71,7 +71,7 @@
                                 <TextBlock Text="配额 · Token · 费用" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                             </StackPanel>
                         </Grid>
-                        <Border CornerRadius="999" Padding="12,4" Background="{ThemeResource SoftPanelBackgroundBrush}" HorizontalAlignment="Left">
+                        <Border CornerRadius="999" Padding="12,4" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <Ellipse Width="7" Height="7" Fill="#22C55E"/>
                                 <TextBlock Text="本地加密 · 多平台监控" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
@@ -97,7 +97,7 @@
 
                     <!-- 底部设置 -->
                     <StackPanel Grid.Row="3" Margin="12,0,12,16" Spacing="10">
-                        <Border CornerRadius="14" Padding="12" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                        <Border CornerRadius="14" Padding="12" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
                             <StackPanel Spacing="3">
                                 <TextBlock Text="{x:Bind VersionText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold"/>
                                 <TextBlock Text="便携配置 · 当前目录 data" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}"/>

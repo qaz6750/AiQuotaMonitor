@@ -71,7 +71,11 @@ public partial class OverviewViewModel : ViewModelBase
         _ = LoadSummariesAsync();
     }
 
-    private void OnAccountsChanged() => RefreshAccounts();
+    private void OnAccountsChanged()
+    {
+        RefreshAccounts();
+        _ = LoadSummariesAsync();
+    }
 
     private void RefreshAccounts()
     {
@@ -232,6 +236,7 @@ public partial class OverviewViewModel : ViewModelBase
     {
         _data.StartAutoRefresh();
         await _data.RefreshAsync();
+        await LoadSummariesAsync();
     }
 
     /// <summary>并发拉取所有账号的今日用量概况，用于多账号概览。</summary>
@@ -459,6 +464,7 @@ public partial class OverviewViewModel : ViewModelBase
     private async Task RefreshAsync()
     {
         await _data.RefreshAsync();
+        await LoadSummariesAsync();
         _data.StartAutoRefresh();
     }
 
