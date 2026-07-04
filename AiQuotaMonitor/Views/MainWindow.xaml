@@ -39,7 +39,8 @@
             </Grid.ColumnDefinitions>
 
             <!-- 侧边栏 -->
-            <Border Grid.Column="0" Background="{ThemeResource SidebarBackgroundBrush}">
+            <Border Grid.Column="0" Background="{ThemeResource SidebarBackgroundBrush}"
+                    BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="0,0,1,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -108,7 +109,17 @@
             </Border>
 
             <!-- 内容区 -->
-            <Frame Grid.Column="1" x:Name="NavFrame" Background="Transparent" CacheSize="4"/>
+            <Frame Grid.Column="1" x:Name="NavFrame" Background="Transparent" CacheSize="4">
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition>
+                            <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                                <EntranceNavigationTransitionInfo/>
+                            </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                        </NavigationThemeTransition>
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
+            </Frame>
         </Grid>
     </Grid>
 </Window>
