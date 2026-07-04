@@ -36,7 +36,7 @@
             </Grid>
 
 <!-- ============ 服务总览卡片 ============ -->
-            <Border Style="{StaticResource CardStyle}">
+            <Border Style="{StaticResource CardStyle}" Padding="22">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140"/>
@@ -73,6 +73,18 @@
                                 <Run Text="下次重置"/><Run Text=" "/><Run Text="{Binding FiveHourResetText}"/>
                             </TextBlock>
                         </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource MetricPillStyle}">
+                                <TextBlock Text="{Binding TopModelText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            </Border>
+                            <Border Style="{StaticResource MetricPillStyle}">
+                                <TextBlock Text="{Binding PeakUsageText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            </Border>
+                            <Border Style="{StaticResource MetricPillStyle}">
+                                <TextBlock Text="{Binding ToolInsightText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            </Border>
+                        </StackPanel>
 
                         <!-- 周额度 -->
                         <StackPanel Spacing="6">
@@ -121,10 +133,12 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <controls:StatCard Label="今日 Tokens" Value="{Binding TodayTokensText}" SubLabel="所有模型合计"/>
                 <controls:StatCard Grid.Column="1" Label="今日调用" Value="{Binding TodayCallsText}" SubLabel="次"/>
                 <controls:StatCard Grid.Column="2" Label="活跃天数" Value="{Binding ActiveDaysText}" SubLabel="近 30 天"/>
+                <controls:StatCard Grid.Column="3" Label="费用" Value="{Binding CostText}" SubLabel="{Binding CostWindowLabel}"/>
             </Grid>
 
             <!-- ============ 今日用量 ============ -->

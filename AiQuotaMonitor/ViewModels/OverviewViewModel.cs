@@ -120,6 +120,10 @@ public partial class OverviewViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private bool _hasData;
+    [ObservableProperty] private string _providerInsightText = "等待刷新后展示提供商摘要";
+    [ObservableProperty] private string _topModelText = "模型明细待刷新";
+    [ObservableProperty] private string _peakUsageText = "峰值时段待刷新";
+    [ObservableProperty] private string _toolInsightText = "工具调用待刷新";
 
     // ===== 服务信息 =====
     [ObservableProperty] private string _levelText = "—";
@@ -288,6 +292,7 @@ public partial class OverviewViewModel : ViewModelBase
             }
         }
         TotalTodayTokensText = Formatters.FormatTokens(total);
+        ProviderInsightText = BuildAccountPortfolioText(results, total);
 
         // AccountSummaryItem 非 Observable，重建集合触发 UI 刷新
         var snapshot = Summaries.ToList();
@@ -311,7 +316,9 @@ public partial class OverviewViewModel : ViewModelBase
         var activeText = active is null ? "未选择活跃账号" : $"当前 {active.DisplayLabel}";
         var updateText = _data.LastUpdated is null ? "等待首次刷新" : $"{Formatters.FormatUpdatedAgo(_data.LastUpdated.Value)}更新";
         var dataText = HasError ? "最近刷新失败" : updateText;
-        return $"{accounts.Count} 个账号 · {providerCount} 个提供商 · {activeText} · {dataText}";
+        var windows = new[] { _data.Current?.FiveHour, _data.Current?.Weekly, _data.Current?.Mcp }.Count(q => q is not null);
+        var windowText = windows > 0 ? $" · {windows} 个配额窗口" : string.Empty;
+        return $"{accounts.Count} 个账号 · {providerCount} 个提供商 · {activeText}{windowText} · {dataText}";
     }
 
     /// <summary>把所有账号近 3 天的小时用量合并为按账号堆叠的趋势（不同账号不同颜色）。</summary>
@@ -505,6 +512,9 @@ public partial class OverviewViewModel : ViewModelBase
         var acc = _settings.ActiveAccount;
         ServiceName = acc?.Provider.Name ?? "AI 服务用量";
         LevelText = (r.Level ?? acc?.PlanBadge ?? "—").ToUpperInvariant();
+        TopModelText = BuildTopModelText(r);
+        PeakUsageText = BuildPeakUsageText(r.Trend7d);
+        ToolInsightText = BuildToolInsightText(r);
 
         // 5h（Token Plan 用作"套餐进度"，无重置时间）
         if (r.FiveHour is { } q5)
@@ -681,5 +691,65 @@ public partial class OverviewViewModel : ViewModelBase
         if (xtime.Length >= 13 && (xtime[10] == ' ' || xtime[10] == 'T'))
             return int.TryParse(xtime.AsSpan(11, 2), out hour);
         return false;
+    }
+
+    private static string BuildTopModelText(UsageResult result)
+    {
+        var top = result.ModelUsage
+            .Where(m => m.TotalTokens > 0)
+            .OrderByDescending(m => m.TotalTokens)
+            .Take(3)
+            .Select(m => $"{m.Model} {Formatters.FormatTokens(m.TotalTokens)}")
+            .ToList();
+        if (top.Count > 0) return string.Join(" · ", top);
+
+        top = result.Trend7d?.PerModel?
+            .Where(m => m.TotalTokens > 0)
+            .OrderByDescending(m => m.TotalTokens)
+            .Take(3)
+            .Select(m => $"{m.Model} {Formatters.FormatTokens(m.TotalTokens)}")
+            .ToList() ?? new List<string>();
+        return top.Count > 0 ? string.Join(" · ", top) : "暂无模型明细";
+    }
+
+    private static string BuildPeakUsageText(TrendSeries? trend)
+    {
+        if (trend?.YValue is null || trend.XTime.Count == 0) return "暂无趋势数据";
+        var bestIdx = -1;
+        var best = 0d;
+        for (var i = 0; i < trend.YValue.Count && i < trend.XTime.Count; i++)
+        {
+            var v = trend.YValue[i] ?? 0;
+            if (v > best) { best = v; bestIdx = i; }
+        }
+        return bestIdx >= 0 && best > 0
+            ? $"峰值 {ShortTime(trend.XTime[bestIdx])} · {Formatters.FormatTokens(best)}"
+            : "趋势平稳，暂无峰值";
+    }
+
+    private static string BuildToolInsightText(UsageResult result)
+    {
+        var total = result.ToolUsage.Sum(t => t.CallCount);
+        if (total <= 0) return "暂无工具调用明细";
+        var failures = result.ToolUsage.Sum(t => t.FailureCount);
+        var top = result.ToolUsage.OrderByDescending(t => t.CallCount).FirstOrDefault();
+        var successRate = total > 0 ? (total - failures) * 100.0 / total : 0;
+        return top is null
+            ? $"工具调用 {total:N0} 次 · 成功率 {successRate:F0}%"
+            : $"工具调用 {total:N0} 次 · {top.Tool} 最活跃 · 成功率 {successRate:F0}%";
+    }
+
+    private static string BuildAccountPortfolioText(IEnumerable<(GlmAccount Account, UsageResult? Result)> results, long totalTokens)
+    {
+        var list = results.ToList();
+        var ok = list.Count(x => x.Result is not null);
+        var providers = list.Select(x => x.Account.Provider.Name).Distinct().Count();
+        return $"{ok}/{list.Count} 个账号已同步 · {providers} 个提供商 · 今日 {Formatters.FormatTokens(totalTokens)}";
+    }
+
+    private static string ShortTime(string raw)
+    {
+        if (raw.Length >= 16 && (raw[10] == ' ' || raw[10] == 'T')) return raw[5..16];
+        return raw;
     }
 }

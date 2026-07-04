@@ -33,6 +33,9 @@ public partial class StatsViewModel : ViewModelBase
     [ObservableProperty] private string _callsText = "—";
     [ObservableProperty] private string _costText = "—";
     [ObservableProperty] private string _rangeLabel = "近 7 天";
+    [ObservableProperty] private string _statsInsightText = "等待刷新后展示模型分布与峰值";
+    [ObservableProperty] private string _topModelText = "—";
+    [ObservableProperty] private string _peakText = "—";
     [ObservableProperty] private bool _hasData;
     [ObservableProperty] private DateTimeOffset _rangeStart = DateTimeOffset.Now.AddDays(-6);
     [ObservableProperty] private DateTimeOffset _rangeEnd = DateTimeOffset.Now;
@@ -132,6 +135,9 @@ public partial class StatsViewModel : ViewModelBase
             TokensText = "—";
             CallsText = "—";
             CostText = "—";
+            StatsInsightText = "暂无统计数据";
+            TopModelText = "—";
+            PeakText = "—";
             return;
         }
 
@@ -146,6 +152,9 @@ public partial class StatsViewModel : ViewModelBase
 
         var cost = CostCalculator.EstimateFromTrend(Trend);
         CostText = cost is not null ? Formatters.FormatCost(cost.TotalCny) : "—";
+        TopModelText = BuildTopModelText(Trend);
+        PeakText = BuildPeakText(Trend);
+        StatsInsightText = $"{RangeLabel} · {Trend.XTime.Count} 个时段 · {TopModelText}";
 
         if (Trend.PerModel is not null)
         {
@@ -218,5 +227,29 @@ public partial class StatsViewModel : ViewModelBase
     {
         hour = 0;
         return xtime.Length >= 13 && (xtime[10] == ' ' || xtime[10] == 'T') && int.TryParse(xtime.AsSpan(11, 2), out hour);
+    }
+
+    private static string BuildTopModelText(TrendSeries trend)
+    {
+        var top = trend.PerModel?
+            .Where(m => m.TotalTokens > 0)
+            .OrderByDescending(m => m.TotalTokens)
+            .FirstOrDefault();
+        return top is null ? "暂无模型明细" : $"Top {top.Model} · {Formatters.FormatTokens(top.TotalTokens)}";
+    }
+
+    private static string BuildPeakText(TrendSeries trend)
+    {
+        var bestIdx = -1;
+        var best = 0d;
+        for (var i = 0; i < trend.YValue.Count && i < trend.XTime.Count; i++)
+        {
+            var v = trend.YValue[i] ?? 0;
+            if (v > best) { best = v; bestIdx = i; }
+        }
+        if (bestIdx < 0 || best <= 0) return "暂无峰值";
+        var label = trend.XTime[bestIdx];
+        if (label.Length >= 16 && (label[10] == ' ' || label[10] == 'T')) label = label[5..16];
+        return $"峰值 {label} · {Formatters.FormatTokens(best)}";
     }
 }

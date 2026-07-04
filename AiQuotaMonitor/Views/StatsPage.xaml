@@ -27,7 +27,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="3">
                     <TextBlock Text="用量统计" FontSize="20" FontWeight="SemiBold"/>
-                    <TextBlock Text="按时间范围查看 token、调用与等价花费" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                    <TextBlock Text="{Binding StatsInsightText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button Command="{Binding RefreshCommand}" Padding="14,7">
@@ -69,10 +69,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <controls:StatCard Label="Token 总量" Value="{Binding TokensText}" SubLabel="{Binding RangeLabel}"/>
                 <controls:StatCard Grid.Column="1" Label="调用次数" Value="{Binding CallsText}" SubLabel="{Binding RangeLabel}"/>
                 <controls:StatCard Grid.Column="2" Label="等价 API 花费" Value="{Binding CostText}" SubLabel="按量计费参考价"/>
+                <controls:StatCard Grid.Column="3" Label="Top 模型" Value="{Binding TopModelText}" SubLabel="按 token 排序"/>
+                <controls:StatCard Grid.Column="4" Label="峰值" Value="{Binding PeakText}" SubLabel="最高时段"/>
             </Grid>
 
             <!-- 趋势图 -->

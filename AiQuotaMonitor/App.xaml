@@ -58,6 +58,7 @@
             <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{ThemeResource SidebarBackgroundColor}" Opacity="0.78" />
             <SolidColorBrush x:Key="NavSelectedBackgroundBrush" Color="{ThemeResource NavSelectedBackgroundColor}" />
             <SolidColorBrush x:Key="SoftPanelBackgroundBrush" Color="{ThemeResource SoftPanelBackgroundColor}" />
+            <SolidColorBrush x:Key="CardHoverBrush" Color="{ThemeResource NavSelectedBackgroundColor}" Opacity="0.45" />
 
             <!-- 配额颜色（固定，明暗通用） -->
             <Color x:Key="QuotaGoodColor">#3FB950</Color>
@@ -93,6 +94,14 @@
             <Style x:Key="BigNumberText" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="34" />
                 <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+
+            <Style x:Key="MetricPillStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="999" />
+                <Setter Property="Padding" Value="10,5" />
+                <Setter Property="Background" Value="{ThemeResource SoftPanelBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
             </Style>
 
             <!-- 全局值转换器 -->

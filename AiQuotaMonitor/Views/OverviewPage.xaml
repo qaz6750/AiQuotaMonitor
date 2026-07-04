@@ -19,13 +19,21 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="7">
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <TextBlock Text="仪表盘" FontSize="22" FontWeight="SemiBold"/>
                         <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding LastUpdatedText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="{Binding OverviewSubtitle}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Style="{StaticResource MetricPillStyle}">
+                            <TextBlock Text="{Binding ProviderInsightText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource MetricPillStyle}">
+                            <TextBlock Text="本地 DPAPI 加密" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        </Border>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <ProgressRing Width="18" Height="18" IsActive="{Binding IsLoading}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
@@ -133,6 +141,41 @@
                 </Border>
             </Grid>
 
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8EC;" FontSize="15" Foreground="#8B5CF6"/>
+                            <TextBlock Text="模型热点" FontSize="13" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding TopModelText}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="15" Foreground="#F59E0B"/>
+                            <TextBlock Text="峰值时段" FontSize="13" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding PeakUsageText}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE71D;" FontSize="15" Foreground="#22C55E"/>
+                            <TextBlock Text="工具调用" FontSize="13" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding ToolInsightText}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <!-- ============ 全部账号近 3 天用量（按账号堆叠） ============ -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="14">
@@ -178,19 +221,16 @@
                                             <TextBlock Text="{Binding PlanBadge}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}"/>
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock FontSize="11" Foreground="{ThemeResource SubtleTextBrush}">
-                                        <Run Text="今日"/><Run Text=" "/><Run Text="{Binding TodayTokensText}"/><Run Text=" tokens"/>
-                                    </TextBlock>
-                                    <TextBlock Text="{Binding CostHint}" FontSize="11" Foreground="#34D399"/>
+                                    <TextBlock Text="{Binding UsageDensityText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <StackPanel Spacing="1" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding PrimaryDisplay}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="5h" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding PrimaryLabel}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Spacing="1" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding SecondaryDisplay}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="周" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SecondaryLabel}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
                                 <controls:SlimProgressBar Grid.Column="3" Value="{Binding FiveHourPct}" FillBrush="{Binding BarBrush}" TrackHeight="6" VerticalAlignment="Center"/>

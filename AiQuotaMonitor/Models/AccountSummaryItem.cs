@@ -25,6 +25,9 @@ public sealed class AccountSummaryItem
     // 展示文本
     public string TodayTokensText => TodayTokens > 0 ? Formatters.FormatTokens(TodayTokens) : "—";
     public string CostHint => EstimatedCostCny > 0 ? $"≈ {Formatters.FormatCost(EstimatedCostCny)}" : "费用待换算";
+    public string UsageDensityText => TodayTokens > 0
+        ? $"今日 {TodayTokensText} · {CostHint}"
+        : HasError ? "刷新失败，点击进入查看" : "今日暂无用量";
     public string FiveHourPctText => $"{FiveHourPct:F0}%";
     public string WeeklyPctText => $"{WeeklyPct:F0}%";
 
