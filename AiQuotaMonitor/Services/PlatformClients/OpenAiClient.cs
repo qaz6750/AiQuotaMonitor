@@ -9,13 +9,7 @@ public sealed class OpenAiClient : IPlatformClient
 {
     public string PlatformId => "gpt";
 
-    private static readonly HttpClient Http = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-        AutomaticDecompression = DecompressionMethods.All,
-        UseCookies = false,
-    })
-    { Timeout = TimeSpan.FromSeconds(45) };
+    private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(45));
 
     public async Task<UsageResult> QueryUsageAsync(string credential, string baseUrl, bool enableRetry = true)
     {

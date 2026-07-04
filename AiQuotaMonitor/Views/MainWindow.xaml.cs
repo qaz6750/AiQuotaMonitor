@@ -44,7 +44,7 @@ public sealed partial class MainWindow : Window
         catch { /* 忽略 */ }
     }
 
-    /// <summary>导航到指定页面并同步左侧选中项。</summary>
+    /// <summary>导航到指定页面并同步侧边栏选中项。</summary>
     public void Navigate(Type page, object? parameter = null)
     {
         if (NavFrame.CurrentSourcePageType != page || parameter is not null)
@@ -58,28 +58,24 @@ public sealed partial class MainWindow : Window
                 : null;
         if (tag is null) return;
 
-        foreach (var item in AllNavItems().OfType<NavigationViewItem>())
+        var target = tag switch
         {
-            if (item.Tag is string t && t == tag)
-            {
-                if (!ReferenceEquals(NavView.SelectedItem, item))
-                {
-                    NavView.SelectedItem = item;
-                }
-                break;
-            }
+            "overview" => NavOverview,
+            "stats" => NavStats,
+            "settings" => NavSettings,
+            _ => (RadioButton?)null,
+        };
+        if (target is not null && target.IsChecked != true)
+        {
+            // 设置 IsChecked 会触发 Nav_Checked，但那里会再调 Navigate；
+            // 由于 CurrentSourcePageType 已与目标一致，Navigate 内部会跳过重复导航。
+            target.IsChecked = true;
         }
     }
 
-    private System.Collections.Generic.IEnumerable<object> AllNavItems()
+    private void Nav_Checked(object sender, RoutedEventArgs e)
     {
-        foreach (var i in NavView.MenuItems) yield return i;
-        foreach (var i in NavView.FooterMenuItems) yield return i;
-    }
-
-    private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
-        if (args.SelectedItem is NavigationViewItem item && item.Tag is string tag)
+        if (sender is RadioButton rb && rb.Tag is string tag)
         {
             var page = tag switch
             {

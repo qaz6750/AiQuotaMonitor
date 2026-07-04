@@ -22,6 +22,7 @@
                     <Color x:Key="TitleBarBackgroundColor">#EEF4FB</Color>
                     <Color x:Key="SidebarBackgroundColor">#EDF7F4</Color>
                     <Color x:Key="SoftPanelBackgroundColor">#EFF4FA</Color>
+                    <Color x:Key="NavSelectedBackgroundColor">#D4EEFA</Color>
                     <Color x:Key="GlowColor">#3358F5B8</Color>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
@@ -34,6 +35,7 @@
                     <Color x:Key="TitleBarBackgroundColor">#111315</Color>
                     <Color x:Key="SidebarBackgroundColor">#101816</Color>
                     <Color x:Key="SoftPanelBackgroundColor">#1A1B1F</Color>
+                    <Color x:Key="NavSelectedBackgroundColor">#16303A</Color>
                     <Color x:Key="GlowColor">#663B82F6</Color>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -54,6 +56,7 @@
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="{ThemeResource SecondaryTextColor}" />
             <SolidColorBrush x:Key="TitleBarBrush" Color="{ThemeResource TitleBarBackgroundColor}" Opacity="0.35" />
             <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{ThemeResource SidebarBackgroundColor}" Opacity="0.78" />
+            <SolidColorBrush x:Key="NavSelectedBackgroundBrush" Color="{ThemeResource NavSelectedBackgroundColor}" />
             <SolidColorBrush x:Key="SoftPanelBackgroundBrush" Color="{ThemeResource SoftPanelBackgroundColor}" />
 
             <!-- 配额颜色（固定，明暗通用） -->
@@ -98,6 +101,64 @@
             <helpers:NotNullToVisibilityConverter x:Key="NotNullToVisibility"/>
             <helpers:StringToVisibilityConverter x:Key="StringToVisibility"/>
             <helpers:HexToBrushConverter x:Key="HexToBrush"/>
+            <helpers:HexToSoftBrushConverter x:Key="HexToSoftBrush"/>
+
+            <!-- 侧边栏导航项样式：透明常态 / 悬浮软背景 / 选中态强调色背景 + 左侧高亮条 -->
+            <Style x:Key="NavRadioButtonStyle" TargetType="RadioButton">
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="MinHeight" Value="44"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Root"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="3,0,0,0"
+                                    CornerRadius="10"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SoftPanelBackgroundBrush}"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource SoftPanelBackgroundBrush}"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled"/>
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="CheckStates">
+                                        <VisualState x:Name="Checked">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource NavSelectedBackgroundBrush}"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#0EA5E9"/>
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Unchecked"/>
+                                        <VisualState x:Name="Indeterminate"/>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

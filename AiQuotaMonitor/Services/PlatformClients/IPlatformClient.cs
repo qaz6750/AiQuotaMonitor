@@ -22,6 +22,10 @@ public static class PlatformClientFactory
     private static readonly FactoryClient Factory = new();
     private static readonly OpenAiClient Gpt = new();
     private static readonly ClaudeClient Claude = new();
+    private static readonly OpenRouterClient OpenRouter = new();
+    private static readonly DeepSeekClient DeepSeek = new();
+    private static readonly MoonshotClient Moonshot = new();
+    private static readonly ElevenLabsClient ElevenLabs = new();
 
     /// <summary>根据账号的 ProviderId 获取对应客户端。</summary>
     public static IPlatformClient Get(GlmAccount account)
@@ -34,6 +38,10 @@ public static class PlatformClientFactory
             "factory" => Factory,
             "gpt" => Gpt,
             "claude" => Claude,
+            "openrouter" => OpenRouter,
+            "deepseek" => DeepSeek,
+            "moonshot" => Moonshot,
+            "elevenlabs" => ElevenLabs,
             _ => Glm,
         };
     }

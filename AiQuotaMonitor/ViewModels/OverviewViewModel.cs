@@ -553,7 +553,7 @@ public partial class OverviewViewModel : ViewModelBase
             CostBreakdownText = $"官方费用约 ¥{officialCost:F2}；美元账单按 1 USD ≈ ¥7.25 换算。";
             CostFormulaText = "费用 = 官方 cost_usd × 7.25；token 图按时段展示。";
         }
-        else if (CostCalculator.EstimateFromTrend(r.Trend7d) ?? CostCalculator.EstimateFromModels(r.ModelUsage) is { } cost)
+        else if ((CostCalculator.EstimateFromTrend(r.Trend7d) ?? CostCalculator.EstimateFromModels(r.ModelUsage)) is { } cost)
         {
             CostText = Formatters.FormatCost(cost.TotalCny);
             CostWindowLabel = cost.HasFallback ? "（含未知模型回退价）" : "近 7 天等价计费";

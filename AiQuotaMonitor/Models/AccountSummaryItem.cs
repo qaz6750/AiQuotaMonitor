@@ -47,6 +47,7 @@ public sealed class AccountSummaryItem
 
     public string ProviderName => Account.Provider.Name;
     public string ProviderGlyph => Account.Provider.Glyph;
+    public string ProviderIconGlyph => Account.Provider.IconGlyph;
     public string ProviderColor => Account.Provider.BrandColor;
     public string Name => Account.DisplayLabel;
     public string PlanBadge => Account.PlanBadge;

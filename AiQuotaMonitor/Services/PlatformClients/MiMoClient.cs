@@ -17,13 +17,7 @@ public sealed class MiMoClient : IPlatformClient
     /// <inheritdoc/>
     public string PlatformId => "mimo";
 
-    private static readonly HttpClient Http = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-        AutomaticDecompression = DecompressionMethods.All,
-        UseCookies = false,
-    })
-    { Timeout = TimeSpan.FromSeconds(30) };
+    private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(30));
 
     private const int MaxRetry = 3;
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };

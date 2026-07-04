@@ -18,10 +18,9 @@ public sealed class AccountRow
     public string PlanBadge => Account.PlanBadge;
     public string ProviderName => Account.Provider.Name;
     public string ProviderGlyph => Account.Provider.Glyph;
+    public string ProviderIconGlyph => Account.Provider.IconGlyph;
     public string ProviderColor => Account.Provider.BrandColor;
-    public string KeyHint => Account.HasKey
-        ? "••••" + Account.ApiKey[^Math.Min(4, Account.ApiKey.Length)..]
-        : "未配置";
+    public string KeyHint => CookieIdentityFormatter.CredentialHint(Account);
 }
 
 /// <summary>设置页提供商下拉项。</summary>
@@ -29,6 +28,10 @@ public sealed class ProviderOption
 {
     public string Id { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
+    public string Glyph { get; init; } = string.Empty;
+    public string IconGlyph { get; init; } = string.Empty;
+    public string BrandColor { get; init; } = "#5B8DEF";
+    public string Description { get; init; } = string.Empty;
     public PlanType PlanType { get; init; }
 }
 
@@ -83,6 +86,18 @@ public partial class SettingsViewModel : ViewModelBase
     public bool IsCookieProvider => Providers.GetById(EditingProviderId).Capabilities.IsCookieAuth;
     public bool CanAutoFetchCredential => IsCookieProvider || Providers.GetById(EditingProviderId).Capabilities.SupportsCredentialAutoFetch;
     public string CredentialLabel => Providers.GetById(EditingProviderId).Capabilities.CredentialLabel;
+    public string CredentialHelpText
+    {
+        get
+        {
+            var p = Providers.GetById(EditingProviderId);
+            if (p.Capabilities.IsCookieAuth || p.Capabilities.SupportsCredentialAutoFetch)
+            {
+                return "Cookie 登录会优先用网页登录账户名/用户 ID 作为默认账号显示名；可手动填写账号名称覆盖。";
+            }
+            return p.SupportedPlan == PlanType.PayAsYouGo ? "按量付费平台使用官方 API/Admin Key，不采集网页登录 Cookie。" : "订阅/Token 平台使用官方 Key 或 Token 查询可用额度。";
+        }
+    }
 
     /// <summary>当前编辑的提供商是否需要 URL 输入（Cookie 鉴权的隐藏）。</summary>
     public bool ShowBaseUrl => !IsCookieProvider;
@@ -94,6 +109,7 @@ public partial class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanAutoFetchCredential));
         OnPropertyChanged(nameof(ShowBaseUrl));
         OnPropertyChanged(nameof(CredentialLabel));
+        OnPropertyChanged(nameof(CredentialHelpText));
         OnPropertyChanged(nameof(EditingProviderIndex));
         OnPropertyChanged(nameof(EditingPlanIndex));
     }
@@ -107,6 +123,10 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 Id = p.Id,
                 DisplayName = p.Name,
+                Glyph = p.Glyph,
+                IconGlyph = p.IconGlyph,
+                BrandColor = p.BrandColor,
+                Description = p.Capabilities.CredentialLabel,
                 PlanType = p.SupportedPlan,
             });
         }
@@ -137,7 +157,7 @@ public partial class SettingsViewModel : ViewModelBase
                 App.MainWindow.DispatcherQueue.TryEnqueue(() =>
                 {
                     EditingApiKey = cookie;
-                    SaveMessage = "✓ 已自动获取 cookie";
+                    SaveMessage = "✓ 已自动获取 cookie；若 Cookie 中包含账号名/用户 ID，将作为默认显示名";
                 });
             };
             win.Activate();

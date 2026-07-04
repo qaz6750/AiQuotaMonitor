@@ -25,12 +25,7 @@ public sealed class GlmClient : IPlatformClient
     /// <inheritdoc/>
     public string PlatformId => "glm";
 
-    private static readonly HttpClient Http = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-        AutomaticDecompression = DecompressionMethods.All,
-    })
-    { Timeout = TimeSpan.FromSeconds(60) };
+    private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(60));
 
     private const int MaxRetry = 3;
     private static readonly JsonSerializerOptions JsonOpts = new()

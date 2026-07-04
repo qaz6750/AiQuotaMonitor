@@ -60,3 +60,25 @@ public sealed class HexToBrushConverter : Microsoft.UI.Xaml.Data.IValueConverter
         => throw new NotImplementedException();
 }
 
+/// <summary>十六进制颜色字符串 → 半透明 SolidColorBrush。</summary>
+public sealed class HexToSoftBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is string s)
+        {
+            try
+            {
+                var c = ColorHelper.ToColor(s);
+                c.A = 36;
+                return new Microsoft.UI.Xaml.Media.SolidColorBrush(c);
+            }
+            catch (Exception ex) { AppLogger.Swallowed("HexToSoftBrush", ex); }
+        }
+        return new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(24, 128, 128, 128));
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+        => throw new NotImplementedException();
+}
+

@@ -12,12 +12,7 @@ public sealed class KimiClient : IPlatformClient
 {
     public string PlatformId => "kimi";
 
-    private static readonly HttpClient Http = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-        AutomaticDecompression = DecompressionMethods.All,
-    })
-    { Timeout = TimeSpan.FromSeconds(30) };
+    private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(30));
 
     private static readonly string[] DefaultEndpoints =
     {

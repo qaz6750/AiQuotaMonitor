@@ -27,7 +27,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2">
                             <TextBlock Text="账号管理" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="已接入：Coding Plan（智谱 GLM、Kimi Code）、Token Plan（小米 MiMo、MiniMax）、按量付费（Factory Droid、OpenAI GPT、Anthropic Claude）。MiMo 需要网页 Cookie；Factory 可用 API Key 或网页 Cookie；GPT/Claude 使用 Admin Key。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="已接入：GLM、Kimi、MiMo、MiniMax、Factory、GPT、Claude、OpenRouter、DeepSeek、Moonshot/Kimi API、ElevenLabs。Cookie 平台会提示并默认显示网页登录账户名。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Grid.Column="1" Command="{Binding StartAddCommand}" Padding="14,7" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -62,9 +62,27 @@
                             <StackPanel Spacing="4">
                                 <TextBlock Text="提供商" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
                                 <ComboBox ItemsSource="{Binding ProviderOptions}"
-                                          DisplayMemberPath="DisplayName"
                                           SelectedIndex="{Binding EditingProviderIndex, Mode=TwoWay}"
-                                          MinWidth="260"/>
+                                          MinWidth="320">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnSpacing="10" MinWidth="260">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Width="30" Height="30" CornerRadius="9" Background="{Binding BrandColor, Converter={StaticResource HexToBrush}}">
+                                                    <TextBlock Text="{Binding Glyph}" Foreground="White" FontWeight="Bold" FontSize="12"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
@@ -73,6 +91,7 @@
                                     <Button Command="{Binding FetchCredentialCommand}" Content="一键获取" Padding="10,3" FontSize="11" Visibility="{Binding CanAutoFetchCredential, Converter={StaticResource BoolToVisibility}}"/>
                                 </StackPanel>
                                 <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按所选提供商填写 API Key、Admin Key、Subscription Key、Bearer Token 或 Cookie"/>
+                                <TextBlock Text="{Binding CredentialHelpText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
 
                             <StackPanel Spacing="4" Visibility="{Binding ShowBaseUrl, Converter={StaticResource BoolToVisibility}}">
@@ -104,10 +123,10 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- 提供商字母色块（叠加当前激活标记） -->
+                                        <!-- 提供商图标色块（叠加当前激活标记） -->
                                         <Grid Width="32" Height="32" VerticalAlignment="Center">
-                                            <Border CornerRadius="8" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}"/>
-                                            <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="14"
+                                            <Border CornerRadius="9" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}"/>
+                                            <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="12"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Ellipse Width="10" Height="10" Fill="#3FB950" Stroke="{ThemeResource CardBackgroundBrush}" StrokeThickness="1.5"
                                                      Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVisibility}}"

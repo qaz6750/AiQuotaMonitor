@@ -72,7 +72,7 @@ jobs:
             ### 使用
             1. 下载对应架构的 zip 并解压
             2. 运行 `AiQuotaMonitor.exe`
-            3. 首次启动添加账号（GLM / Kimi / MiMo / MiniMax / Factory / GPT / Claude）
+            3. 首次启动添加账号（GLM / Kimi / MiMo / MiniMax / Factory / GPT / Claude / OpenRouter / DeepSeek / Moonshot / ElevenLabs）
 
             ### 系统要求
             - Windows 10 19041+ / Windows 11

@@ -38,6 +38,7 @@ public sealed class ProviderDescriptor
     public string Id { get; init; } = "glm";
     public string Name { get; init; } = string.Empty;
     public string Glyph { get; init; } = "G";
+    public string IconGlyph { get; init; } = "\uE8D4";
     public string BrandColor { get; init; } = "#5B8DEF";
     public string DefaultBaseUrl { get; init; } = "https://open.bigmodel.cn";
     public string? DocsUrl { get; init; }
@@ -55,6 +56,7 @@ public static class Providers
         Id = "glm",
         Name = "智谱 GLM",
         Glyph = "G",
+        IconGlyph = "\uE8D4",
         BrandColor = "#0EA5E9",
         DefaultBaseUrl = "https://open.bigmodel.cn",
         DocsUrl = "https://open.bigmodel.cn",
@@ -67,7 +69,8 @@ public static class Providers
     {
         Id = "mimo",
         Name = "小米 MiMo",
-        Glyph = "M",
+        Glyph = "米",
+        IconGlyph = "\uE946",
         BrandColor = "#FF6900",
         DefaultBaseUrl = "https://platform.xiaomimimo.com",
         DocsUrl = "https://platform.xiaomimimo.com/console/plan-manage",
@@ -94,6 +97,7 @@ public static class Providers
         Id = "kimi",
         Name = "Kimi Code",
         Glyph = "K",
+        IconGlyph = "\uE943",
         BrandColor = "#7C3AED",
         DefaultBaseUrl = "https://api.kimi.com/coding/v1/usages",
         DocsUrl = "https://www.kimi.com/code/console",
@@ -117,6 +121,7 @@ public static class Providers
         Id = "minimax",
         Name = "MiniMax Token Plan",
         Glyph = "X",
+        IconGlyph = "\uE9F2",
         BrandColor = "#10B981",
         DefaultBaseUrl = "https://api.minimaxi.com/v1/token_plan/remains",
         DocsUrl = "https://platform.minimaxi.com",
@@ -140,6 +145,7 @@ public static class Providers
         Id = "factory",
         Name = "Factory Droid",
         Glyph = "F",
+        IconGlyph = "\uE99A",
         BrandColor = "#F59E0B",
         DefaultBaseUrl = "https://app.factory.ai",
         DocsUrl = "https://app.factory.ai",
@@ -164,7 +170,8 @@ public static class Providers
     {
         Id = "gpt",
         Name = "OpenAI GPT",
-        Glyph = "G",
+        Glyph = "AI",
+        IconGlyph = "\uE8F1",
         BrandColor = "#10A37F",
         DefaultBaseUrl = "https://api.openai.com",
         DocsUrl = "https://platform.openai.com/settings/organization/admin-keys",
@@ -189,6 +196,7 @@ public static class Providers
         Id = "claude",
         Name = "Anthropic Claude",
         Glyph = "C",
+        IconGlyph = "\uE90A",
         BrandColor = "#D97757",
         DefaultBaseUrl = "https://api.anthropic.com",
         DocsUrl = "https://console.anthropic.com/settings/admin-keys",
@@ -207,8 +215,107 @@ public static class Providers
         },
     };
 
+    /// <summary>OpenRouter（API Key 余额 + Key spend）。</summary>
+    public static readonly ProviderDescriptor OpenRouter = new()
+    {
+        Id = "openrouter",
+        Name = "OpenRouter",
+        Glyph = "OR",
+        IconGlyph = "\uE774",
+        BrandColor = "#6D5EF6",
+        DefaultBaseUrl = "https://openrouter.ai/api/v1",
+        DocsUrl = "https://openrouter.ai/settings/keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasResetTime = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "OpenRouter API Key",
+            PrimaryQuotaLabel = "Credits Used",
+            SecondaryQuotaLabel = "Monthly Spend",
+            RingCenterLabel = "OR",
+        },
+    };
+
+    /// <summary>DeepSeek（API Key 余额接口）。</summary>
+    public static readonly ProviderDescriptor DeepSeek = new()
+    {
+        Id = "deepseek",
+        Name = "DeepSeek",
+        Glyph = "DS",
+        IconGlyph = "\uE8D2",
+        BrandColor = "#4F8BFF",
+        DefaultBaseUrl = "https://api.deepseek.com",
+        DocsUrl = "https://platform.deepseek.com/api_keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasResetTime = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "DeepSeek API Key",
+            PrimaryQuotaLabel = "账户余额",
+            SecondaryQuotaLabel = "已充值余额",
+            RingCenterLabel = "DS",
+        },
+    };
+
+    /// <summary>Moonshot / Kimi API（API Key 余额接口）。</summary>
+    public static readonly ProviderDescriptor Moonshot = new()
+    {
+        Id = "moonshot",
+        Name = "Moonshot / Kimi API",
+        Glyph = "月",
+        IconGlyph = "\uE708",
+        BrandColor = "#111827",
+        DefaultBaseUrl = "https://api.moonshot.ai/v1",
+        DocsUrl = "https://platform.moonshot.ai/console/api-keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasResetTime = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "Moonshot API Key",
+            PrimaryQuotaLabel = "可用余额",
+            SecondaryQuotaLabel = "现金余额",
+            RingCenterLabel = "Kimi",
+        },
+    };
+
+    /// <summary>ElevenLabs（API Key 订阅字符额度）。</summary>
+    public static readonly ProviderDescriptor ElevenLabs = new()
+    {
+        Id = "elevenlabs",
+        Name = "ElevenLabs",
+        Glyph = "11",
+        IconGlyph = "\uE189",
+        BrandColor = "#111111",
+        DefaultBaseUrl = "https://api.elevenlabs.io/v1",
+        DocsUrl = "https://elevenlabs.io/app/settings/api-keys",
+        SupportedPlan = PlanType.PayAsYouGo,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasEstimate = false,
+            HasMcp = false,
+            CredentialLabel = "ElevenLabs API Key",
+            PrimaryQuotaLabel = "字符额度",
+            SecondaryQuotaLabel = "Voice Slots",
+            RingCenterLabel = "11",
+        },
+    };
+
     /// <summary>全部已启用的提供商。</summary>
-    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, MiMo, MiniMax, Factory, Gpt, Claude };
+    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, MiMo, MiniMax, Factory, Gpt, Claude, OpenRouter, DeepSeek, Moonshot, ElevenLabs };
 
     /// <summary>按 id 查找。</summary>
     public static ProviderDescriptor GetById(string? id)

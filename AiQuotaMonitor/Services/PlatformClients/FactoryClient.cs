@@ -12,13 +12,7 @@ public sealed class FactoryClient : IPlatformClient
 {
     public string PlatformId => "factory";
 
-    private static readonly HttpClient Http = new(new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-        AutomaticDecompression = DecompressionMethods.All,
-        UseCookies = false,
-    })
-    { Timeout = TimeSpan.FromSeconds(30) };
+    private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(30));
 
     private static readonly string[] DefaultHosts =
     {

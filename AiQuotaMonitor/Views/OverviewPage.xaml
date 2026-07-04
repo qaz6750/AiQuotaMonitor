@@ -22,9 +22,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <TextBlock Text="仪表盘" FontSize="22" FontWeight="SemiBold"/>
                         <Ellipse Width="8" Height="8" Fill="{Binding StatusBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding LastUpdatedText}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <ProgressRing Width="18" Height="18" IsActive="{Binding IsLoading}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
@@ -57,24 +55,8 @@
                 </InfoBar.ActionButton>
             </InfoBar>
 
-            <!-- ============ Token Plan 说明 ============ -->
-            <InfoBar
-                IsOpen="{Binding IsTokenPlan}"
-                Severity="Informational"
-                Title="Token Plan"
-                Message="当前账号为 Token Plan。配额百分比与 token 用量来自用量接口。"
-                IsClosable="False"/>
-
             <!-- ============ API 按量付费说明 ============ -->
-            <InfoBar
-                IsOpen="{Binding IsPayAsYouGoPlan}"
-                Severity="Informational"
-                Title="API 按量付费"
-                Message="当前账号按模型 token 用量估算等价 API 花费；配额窗口可能不适用，以统计页的模型明细和费用为准。"
-                IsClosable="False"/>
-
-            <!-- ============ 多账号概览：顶部合计 + 每账号一行 ============ -->
-            <Grid ColumnSpacing="12" RowSpacing="12">
+            <InfoBarg="12" RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -150,13 +132,13 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="仪表盘时段图" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="按小时堆叠显示近 3 天用量；鼠标悬浮可查看时段、调用次数和模型/账号明细。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <TextBlock Text="每个小方块代表一个时段，颜色越深用量越高；鼠标悬浮可查看 token、调用次数与各账号明细。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                         </StackPanel>
                         <Border Grid.Column="1" CornerRadius="999" Padding="10,4" Background="{ThemeResource SoftPanelBackgroundBrush}" VerticalAlignment="Center">
                             <TextBlock Text="Hover 查看详情" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                         </Border>
                     </Grid>
-                    <controls:UsageChartControl Trend="{Binding CombinedTrend}" ShowAxis="True" Height="220"/>
+                    <controls:UsageHeatmapControl Trend="{Binding CombinedTrend}"/>
                 </StackPanel>
             </Border>
 
@@ -175,7 +157,7 @@
                                     <ColumnDefinition Width="150"/>
                                 </Grid.ColumnDefinitions>
                                 <Border Width="38" Height="38" CornerRadius="12" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}">
-                                    <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="15"
+                                    <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="14"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
