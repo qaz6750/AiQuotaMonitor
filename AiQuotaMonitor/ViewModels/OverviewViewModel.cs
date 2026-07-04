@@ -21,6 +21,7 @@ public partial class OverviewViewModel : ViewModelBase
     private TrendRange _trendRange = TrendRange.Today;
     private GlmAccount? _selectedAccount;
     private bool _syncingAccounts;
+    private int _summaryRequestVersion;
 
     /// <summary>可切换的账号列表（概览页头部收纳下拉）。</summary>
     public ObservableCollection<GlmAccount> Accounts { get; } = new();
@@ -242,12 +243,16 @@ public partial class OverviewViewModel : ViewModelBase
     /// <summary>并发拉取所有账号的今日用量概况，用于多账号概览。</summary>
     private async Task LoadSummariesAsync()
     {
+        var version = Interlocked.Increment(ref _summaryRequestVersion);
         var accounts = _settings.Accounts.ToList();
         AccountCount = accounts.Count;
         if (accounts.Count == 0)
         {
             Summaries.Clear();
             TotalTodayTokensText = "—";
+            ProviderInsightText = "0/0 个账号已同步";
+            CombinedTrend = null;
+            IsLoadingAll = false;
             return;
         }
 
@@ -255,58 +260,72 @@ public partial class OverviewViewModel : ViewModelBase
         Summaries.Clear();
         foreach (var a in accounts) Summaries.Add(new AccountSummaryItem { Account = a });
 
-        using var gate = new SemaphoreSlim(3);
-        var results = await Task.WhenAll(accounts.Select(async a =>
+        try
         {
-            if (!a.HasKey) return (a, (UsageResult?)null);
-            await gate.WaitAsync();
-            try
+            using var gate = new SemaphoreSlim(3);
+            var results = await Task.WhenAll(accounts.Select(async a =>
             {
-                // 活跃账号复用 UsageDataService 缓存，避免重复查询
-                if (a.Id == _settings.ActiveAccount?.Id && _data.Current is { } cached) return (a, cached);
-                return (a, await PlatformClientFactory.Get(a).QueryUsageAsync(a.ApiKey, a.BaseUrl, _settings.EnableRetry));
-            }
-            catch (Exception ex) { AppLogger.Swallowed("LoadSummaries", ex); return (a, (UsageResult?)null); }
-            finally { gate.Release(); }
-        }));
+                if (!a.HasKey) return (a, (UsageResult?)null);
+                await gate.WaitAsync();
+                try
+                {
+                    // 活跃账号复用 UsageDataService 缓存，避免重复查询
+                    if (a.Id == _settings.ActiveAccount?.Id && _data.CurrentAccountId == a.Id && _data.Current is { } cached) return (a, cached);
+                    return (a, await PlatformClientFactory.Get(a).QueryUsageAsync(a.ApiKey, a.BaseUrl, _settings.EnableRetry));
+                }
+                catch (Exception ex) { AppLogger.Swallowed("LoadSummaries", ex); return (a, (UsageResult?)null); }
+                finally { gate.Release(); }
+            }));
 
-        long total = 0;
-        foreach (var (a, r) in results)
-        {
-            var item = Summaries.FirstOrDefault(s => s.Account.Id == a.Id);
-            if (item is null) continue;
-            if (r is not null)
+            if (version != _summaryRequestVersion) return;
+
+            long total = 0;
+            foreach (var (a, r) in results)
             {
-                var today = ExtractToday(r.Trend7d);
-                item.TodayTokens = (long)(today?.TotalTokens ?? 0);
-                item.FiveHourPct = r.FiveHour?.Percentage ?? 0;
-                item.PrimaryUsed = (long)(r.FiveHour?.CurrentUsage ?? 0);
-                item.PrimaryLimit = (long)(r.FiveHour?.Total ?? 0);
-                item.WeeklyPct = r.Weekly?.Percentage ?? 0;
-                item.SecondaryUsed = (long)(r.Weekly?.CurrentUsage ?? 0);
-                item.SecondaryLimit = (long)(r.Weekly?.Total ?? 0);
-                item.EstimatedCostCny = (a.PlanType == PlanType.PayAsYouGo && r.Weekly?.CurrentUsage is double c && c > 0)
-                    ? c
-                    : CostCalculator.EstimateFromTrend(r.Trend7d)?.TotalCny ?? 0;
-                item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(Math.Max(item.FiveHourPct, item.WeeklyPct)));
-                total += item.TodayTokens;
+                var item = Summaries.FirstOrDefault(s => s.Account.Id == a.Id);
+                if (item is null) continue;
+                if (r is not null)
+                {
+                    var today = ExtractToday(r.Trend7d);
+                    item.TodayTokens = (long)(today?.TotalTokens ?? 0);
+                    item.FiveHourPct = r.FiveHour?.Percentage ?? 0;
+                    item.PrimaryUsed = (long)(r.FiveHour?.CurrentUsage ?? 0);
+                    item.PrimaryLimit = (long)(r.FiveHour?.Total ?? 0);
+                    item.WeeklyPct = r.Weekly?.Percentage ?? 0;
+                    item.SecondaryUsed = (long)(r.Weekly?.CurrentUsage ?? 0);
+                    item.SecondaryLimit = (long)(r.Weekly?.Total ?? 0);
+                    item.EstimatedCostCny = (a.PlanType == PlanType.PayAsYouGo && r.Weekly?.CurrentUsage is double c && c > 0)
+                        ? c
+                        : CostCalculator.EstimateFromTrend(r.Trend7d)?.TotalCny ?? 0;
+                    item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(Math.Max(item.FiveHourPct, item.WeeklyPct)));
+                    total += item.TodayTokens;
+                }
+                else
+                {
+                    item.HasError = true;
+                }
             }
-            else
-            {
-                item.HasError = true;
-            }
+
+            TotalTodayTokensText = Formatters.FormatTokens(total);
+            ProviderInsightText = BuildAccountPortfolioText(results, total);
+
+            // AccountSummaryItem 非 Observable，重建集合触发 UI 刷新
+            var snapshot = Summaries.ToList();
+            Summaries.Clear();
+            foreach (var s in snapshot) Summaries.Add(s);
+            CombinedTrend = BuildCombinedTrend(results);
+            OnPropertyChanged(nameof(HasCombinedTrend));
+            OnPropertyChanged(nameof(OverviewSubtitle));
         }
-        TotalTodayTokensText = Formatters.FormatTokens(total);
-        ProviderInsightText = BuildAccountPortfolioText(results, total);
-
-        // AccountSummaryItem 非 Observable，重建集合触发 UI 刷新
-        var snapshot = Summaries.ToList();
-        Summaries.Clear();
-        foreach (var s in snapshot) Summaries.Add(s);
-        CombinedTrend = BuildCombinedTrend(results);
-        IsLoadingAll = false;
-        OnPropertyChanged(nameof(OverviewSubtitle));
+        finally
+        {
+            if (version == _summaryRequestVersion) IsLoadingAll = false;
+        }
     }
+
+    public bool HasCombinedTrend => CombinedTrend is not null;
+
+    partial void OnCombinedTrendChanged(TrendSeries? value) => OnPropertyChanged(nameof(HasCombinedTrend));
 
     private string BuildOverviewSubtitle()
     {
@@ -326,49 +345,67 @@ public partial class OverviewViewModel : ViewModelBase
         return $"{accounts.Count} 个账号 · {providerCount} 个提供商 · {activeText}{windowText} · {dataText}";
     }
 
-    /// <summary>把所有账号近 3 天的小时用量合并为按账号堆叠的趋势（不同账号不同颜色）。</summary>
+    /// <summary>把所有账号近 3 天的小时用量按统一时间轴合并，账号多时也不会串位或无限增长。</summary>
     private static TrendSeries? BuildCombinedTrend(IEnumerable<(GlmAccount Account, UsageResult? Result)> results)
     {
         const int Hours = 3 * 24;
+        var valid = results
+            .Where(x => x.Result?.Trend7d?.XTime is { Count: > 0 })
+            .ToList();
+        if (valid.Count == 0) return null;
+
+        var xTime = valid
+            .SelectMany(x => x.Result!.Trend7d!.XTime)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(x => x, StringComparer.Ordinal)
+            .TakeLast(Hours)
+            .ToList();
+        if (xTime.Count == 0) return null;
+
         var series = new List<ModelTrendSeries>();
-        List<string>? xTime = null;
-        foreach (var (a, r) in results)
+        foreach (var (a, r) in valid)
         {
-            if (r?.Trend7d is not { } t || t.XTime is null || t.XTime.Count == 0) continue;
-            var n = t.XTime.Count;
-            var take = Math.Min(Hours, n);
-            var start = n - take;
-            var yv = (t.YValue ?? new List<double?>()).Skip(start).Take(take).ToList();
-            while (yv.Count < take) yv.Add(0);
-            var mc = (t.ModelCallCount ?? new List<double?>()).Skip(start).Take(take).ToList();
-            while (mc.Count < take) mc.Add(0);
-            xTime ??= t.XTime.Skip(start).Take(take).ToList();
-            // 安全：确保当前账号数据点数与 xTime 对齐
-            if (yv.Count > xTime.Count) yv = yv.Take(xTime.Count).ToList();
-            if (mc.Count > xTime.Count) mc = mc.Take(xTime.Count).ToList();
+            var t = r!.Trend7d!;
+            var values = new Dictionary<string, double>(StringComparer.Ordinal);
+            var calls = new Dictionary<string, double>(StringComparer.Ordinal);
+            for (var i = 0; i < t.XTime.Count; i++)
+            {
+                values[t.XTime[i]] = i < t.YValue.Count ? t.YValue[i] ?? 0 : 0;
+                calls[t.XTime[i]] = i < t.ModelCallCount.Count ? t.ModelCallCount[i] ?? 0 : 0;
+            }
+            var yv = xTime.Select(x => (double?)values.GetValueOrDefault(x)).ToList();
+            var mc = xTime.Select(x => (double?)calls.GetValueOrDefault(x)).ToList();
+            var totalTokens = (long)yv.Sum(v => v ?? 0);
+            if (totalTokens <= 0) continue;
             series.Add(new ModelTrendSeries
             {
                 Model = a.DisplayLabel,
                 Color = a.Provider.BrandColor,
                 YValue = yv,
                 CallCount = mc,
-                TotalTokens = (long)yv.Sum(v => v ?? 0),
+                TotalTokens = totalTokens,
             });
         }
-        if (xTime is null || series.Count == 0) return null;
+        if (series.Count == 0) return null;
         var N = xTime.Count;
         var combinedY = new double?[N];
+        var combinedCalls = new double?[N];
         foreach (var s in series)
+        {
             for (var i = 0; i < N && i < s.YValue.Count; i++)
+            {
                 combinedY[i] = (combinedY[i] ?? 0) + (s.YValue[i] ?? 0);
+                combinedCalls[i] = (combinedCalls[i] ?? 0) + (i < s.CallCount.Count ? s.CallCount[i] ?? 0 : 0);
+            }
+        }
         return new TrendSeries
         {
             XTime = xTime,
             YValue = combinedY.ToList(),
-            ModelCallCount = combinedY.Select(_ => (double?)0).ToList(),
+            ModelCallCount = combinedCalls.ToList(),
             PerModel = series,
             TotalTokens = series.Sum(s => s.TotalTokens),
-            TotalCalls = 0,
+            TotalCalls = combinedCalls.Sum(v => v ?? 0),
         };
     }
 

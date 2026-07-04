@@ -8,18 +8,18 @@
     mc:Ignorable="d"
     HorizontalAlignment="Stretch">
 
-    <StackPanel Spacing="10">
+    <StackPanel Spacing="6">
         <!-- 热力图主体：由代码动态构建（天行 + 小时轴） -->
         <Grid x:Name="HeatmapRoot" HorizontalAlignment="Stretch"/>
 
         <!-- 图例：颜色深浅对应用量多少 -->
-        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+        <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
             <TextBlock Text="少" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
-            <Border Width="13" Height="13" CornerRadius="3" Background="#140EA5E9"/>
-            <Border Width="13" Height="13" CornerRadius="3" Background="#330EA5E9"/>
-            <Border Width="13" Height="13" CornerRadius="3" Background="#660EA5E9"/>
-            <Border Width="13" Height="13" CornerRadius="3" Background="#990EA5E9"/>
-            <Border Width="13" Height="13" CornerRadius="3" Background="#E60EA5E9"/>
+            <Border Width="12" Height="12" CornerRadius="6" Background="#140EA5E9"/>
+            <Border Width="12" Height="12" CornerRadius="6" Background="#330EA5E9"/>
+            <Border Width="12" Height="12" CornerRadius="6" Background="#660EA5E9"/>
+            <Border Width="12" Height="12" CornerRadius="6" Background="#990EA5E9"/>
+            <Border Width="12" Height="12" CornerRadius="6" Background="#E60EA5E9"/>
             <TextBlock Text="多" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
         </StackPanel>
     </StackPanel>

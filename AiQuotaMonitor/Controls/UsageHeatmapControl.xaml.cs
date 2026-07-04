@@ -116,14 +116,14 @@ public sealed partial class UsageHeatmapControl : UserControl
                 FontSize = 11,
                 Foreground = (Brush)Application.Current.Resources["SubtleTextBrush"],
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 4, 10, 4),
+                Margin = new Thickness(0, 2, 10, 2),
             };
             Grid.SetRow(label, row);
             Grid.SetColumn(label, 0);
             HeatmapRoot.Children.Add(label);
 
             // 24 小时格
-            var rowGrid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+            var rowGrid = new Grid { Margin = new Thickness(0, 1, 0, 1) };
             for (var c = 0; c < 24; c++)
                 rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = Star });
 
@@ -143,7 +143,7 @@ public sealed partial class UsageHeatmapControl : UserControl
 
         // 小时轴
         HeatmapRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var axis = new Grid { Margin = new Thickness(0, 4, 0, 0) };
+        var axis = new Grid { Margin = new Thickness(0, 2, 0, 0) };
         for (var c = 0; c < 24; c++)
             axis.ColumnDefinitions.Add(new ColumnDefinition { Width = Star });
         foreach (var h in new[] { 0, 6, 12, 18 })
@@ -192,9 +192,9 @@ public sealed partial class UsageHeatmapControl : UserControl
 
         var border = new Border
         {
-            Height = 26,
-            Margin = new Thickness(1.5),
-            CornerRadius = new CornerRadius(5),
+            Height = 20,
+            Margin = new Thickness(1.5, 1, 1.5, 1),
+            CornerRadius = new CornerRadius(6),
             Background = LevelBrush(hasValue ? level : 0),
         };
 
@@ -216,13 +216,24 @@ public sealed partial class UsageHeatmapControl : UserControl
     {
         if (perModel is null || perModel.Count == 0) return string.Empty;
         var sb = new System.Text.StringBuilder();
-        foreach (var s in perModel)
+        var visible = 0;
+        var hidden = 0;
+        foreach (var s in perModel.OrderByDescending(s => i < s.YValue.Count ? s.YValue[i] ?? 0 : 0))
         {
             if (i < s.YValue.Count && s.YValue[i] is { } sv && sv > 0)
             {
-                sb.Append(s.Model).Append("：").Append(Formatters.FormatTokens((long)sv)).Append("   ");
+                if (visible < 6)
+                {
+                    sb.Append(s.Model).Append("：").Append(Formatters.FormatTokens((long)sv)).Append("   ");
+                    visible++;
+                }
+                else
+                {
+                    hidden++;
+                }
             }
         }
+        if (hidden > 0) sb.Append("等 ").Append(hidden).Append(" 个账号");
         return sb.ToString().Trim();
     }
 

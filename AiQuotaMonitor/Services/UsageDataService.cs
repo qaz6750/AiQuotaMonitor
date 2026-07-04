@@ -18,6 +18,7 @@ public sealed class UsageDataService
     private bool _refreshing;
 
     public UsageResult? Current { get; private set; }
+    public string? CurrentAccountId => _lastAccountId;
     public DateTimeOffset? LastUpdated { get; private set; }
     public bool IsLoading { get; private set; }
     public string? LastError { get; private set; }
