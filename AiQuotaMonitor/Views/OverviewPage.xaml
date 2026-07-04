@@ -57,7 +57,15 @@
             </InfoBar>
 
             <!-- ============ API 按量付费说明 ============ -->
-            <InfoBarg="12" RowSpacing="12">
+            <InfoBar
+                IsOpen="{Binding IsPayAsYouGoPlan}"
+                Severity="Informational"
+                Title="API 按量付费"
+                Message="当前账号按模型 token 用量估算等价 API 花费；配额窗口可能不适用，以统计页的模型明细和费用为准。"
+                IsClosable="False"/>
+
+            <!-- ============ 多账号概览：顶部合计 + 每账号一行 ============ -->
+            <Grid ColumnSpacing="12" RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
