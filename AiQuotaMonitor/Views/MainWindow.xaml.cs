@@ -14,6 +14,7 @@ namespace AiQuotaMonitor.Views;
 public sealed partial class MainWindow : Window
 {
     public Frame ContentFrame => NavFrame;
+    public string VersionText => BuildInfo.DisplayBuild;
 
     public MainWindow()
     {

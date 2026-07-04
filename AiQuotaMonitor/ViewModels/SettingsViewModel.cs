@@ -43,6 +43,15 @@ public partial class SettingsViewModel : ViewModelBase
     public ObservableCollection<AccountRow> Accounts { get; } = new();
     public ObservableCollection<ProviderOption> ProviderOptions { get; } = new();
 
+    public string VersionText => BuildInfo.DisplayBuild;
+    public string CommitText => BuildInfo.ShortCommit;
+    public string SettingsPathText => _s.SettingsFilePath;
+    public string DataDirectoryText => _s.SettingsDirectory;
+    public string RuntimeText => $"{Environment.OSVersion.VersionString} · .NET {Environment.Version}";
+    public string AccountStatsText => Accounts.Count == 0
+        ? "尚未保存账号"
+        : $"{Accounts.Count} 个账号 · {Accounts.Select(a => a.ProviderName).Distinct().Count()} 个提供商";
+
     // ===== 编辑表单 =====
     [ObservableProperty] private string _editingName = "";
     [ObservableProperty] private string _editingProviderId = "glm";
@@ -218,6 +227,7 @@ public partial class SettingsViewModel : ViewModelBase
             Accounts.Add(new AccountRow { Account = a, IsCurrent = a.Id == activeId });
         }
         HasAccounts = Accounts.Count > 0;
+        OnPropertyChanged(nameof(AccountStatsText));
     }
 
     /// <summary>页面卸载时取消事件订阅。</summary>

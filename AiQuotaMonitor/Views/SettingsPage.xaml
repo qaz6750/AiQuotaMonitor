@@ -212,18 +212,71 @@
 
             <!-- ===== 数据与关于 ===== -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="数据与关于" FontSize="15" FontWeight="SemiBold"/>
-                    <TextBlock Text="所有账号凭据经 DPAPI（当前用户范围）加密后仅存储在本地，不会上传任何服务器。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
-                    <Button Command="{Binding ResetAllCommand}" Padding="16,8">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE74D;" FontSize="13"/>
-                            <TextBlock Text="清理全部数据" FontSize="12"/>
+                <StackPanel Spacing="16">
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="42" Height="42" CornerRadius="14">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#38BDF8" Offset="0"/>
+                                    <GradientStop Color="#0EA5E9" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <TextBlock Text="AI" Foreground="White" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Text="数据与关于" FontSize="15" FontWeight="SemiBold"/>
+                            <TextBlock Text="便携配置保存在当前应用目录；凭据经 DPAPI（当前用户范围）加密，不上传任何服务器。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
-                    </Button>
-                    <TextBlock FontSize="11" Foreground="{ThemeResource SubtleTextBrush}">
-                        <Run Text="AI Quota Monitor"/><Run Text="  v1.0"/><Run Text="  ·  多提供商 AI 配额监控"/>
-                    </TextBlock>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12" RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border CornerRadius="14" Padding="14" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="版本" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding VersionText}" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" CornerRadius="14" Padding="14" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="账号统计" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding AccountStatsText}" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="1" CornerRadius="14" Padding="14" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="配置文件" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding SettingsPathText}" FontSize="11" TextWrapping="WrapWholeWords"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" CornerRadius="14" Padding="14" Background="{ThemeResource SoftPanelBackgroundBrush}">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="运行环境" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding RuntimeText}" FontSize="11" TextWrapping="WrapWholeWords"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Command="{Binding ResetAllCommand}" Padding="16,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE74D;" FontSize="13"/>
+                                <TextBlock Text="清理全部数据" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </StackPanel>

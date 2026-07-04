@@ -8,9 +8,7 @@ namespace AiQuotaMonitor.Helpers;
 /// </summary>
 public static class AppLogger
 {
-    private static readonly string LogDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "AiQuotaMonitor", "logs");
+    private static readonly string LogDir = AppPaths.LogDirectory;
     private static readonly object _lock = new();
     private static StreamWriter? _writer;
     private static DateTime _logDate;

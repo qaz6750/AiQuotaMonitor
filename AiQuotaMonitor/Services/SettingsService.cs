@@ -27,7 +27,7 @@ public sealed class SettingsSnapshot
 }
 
 /// <summary>
-/// 全局设置单例。持久化到 %LOCALAPPDATA%\AiQuotaMonitor\settings.json。
+/// 全局设置单例。持久化到应用当前目录 data\settings.json。
 /// 支持多账号管理：每个账号独立保存 API Key（DPAPI/CurrentUser 加密）与 BaseUrl，
 /// 全局偏好（刷新间隔、重试、自动刷新、高用量警告）跨账号共享。
 /// </summary>
@@ -35,9 +35,14 @@ public sealed class SettingsService
 {
     public static SettingsService Instance { get; } = new();
 
-    private static readonly string Dir =
+    private static readonly string Dir = AppPaths.DataDirectory;
+    private static readonly string FilePath = AppPaths.SettingsFile;
+    private static readonly string LegacyDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiQuotaMonitor");
-    private static readonly string FilePath = Path.Combine(Dir, "settings.json");
+    private static readonly string LegacyFilePath = Path.Combine(LegacyDir, "settings.json");
+
+    public string SettingsDirectory => Dir;
+    public string SettingsFilePath => FilePath;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -92,7 +97,11 @@ public sealed class SettingsService
 
     private void Load()
     {
-        if (!File.Exists(FilePath))
+        var loadPath = File.Exists(FilePath) ? FilePath
+            : File.Exists(LegacyFilePath) ? LegacyFilePath
+            : null;
+
+        if (loadPath is null)
         {
             LoadDefaults();
             return;
@@ -100,7 +109,7 @@ public sealed class SettingsService
 
         try
         {
-            var json = File.ReadAllText(FilePath);
+            var json = File.ReadAllText(loadPath);
             var s = JsonSerializer.Deserialize<SettingsSnapshot>(json, JsonOpts) ?? new SettingsSnapshot();
 
             RefreshIntervalMinutes = s.RefreshInterval ?? 10;
@@ -143,6 +152,12 @@ public sealed class SettingsService
 
             ActiveAccount = _accounts.FirstOrDefault(a => a.Id == s.ActiveAccountId)
                             ?? _accounts.FirstOrDefault();
+
+            // 从旧 LocalAppData 成功加载时，自动写入当前目录 data\settings.json，完成一次性便携迁移。
+            if (!string.Equals(loadPath, FilePath, StringComparison.OrdinalIgnoreCase))
+            {
+                Save();
+            }
         }
         catch
         {
@@ -254,6 +269,7 @@ public sealed class SettingsService
         try
         {
             if (Directory.Exists(Dir)) Directory.Delete(Dir, recursive: true);
+            if (Directory.Exists(LegacyDir)) Directory.Delete(LegacyDir, recursive: true);
         }
         catch (Exception ex) { AppLogger.Swallowed("ResetAll删除", ex); }
         AccountsChanged?.Invoke();

@@ -30,6 +30,9 @@ public partial class OverviewViewModel : ViewModelBase
     public bool IsTokenPlan => ActivePlanType == PlanType.Token;
     public bool IsPayAsYouGoPlan => ActivePlanType == PlanType.PayAsYouGo;
 
+    /// <summary>仪表盘顶部摘要：账号覆盖、活跃对象、数据状态与便携配置位置。</summary>
+    public string OverviewSubtitle => BuildOverviewSubtitle();
+
     // ===== 多账号概览 =====
     public ObservableCollection<AccountSummaryItem> Summaries { get; } = new();
     [ObservableProperty] private string _totalTodayTokensText = "—";
@@ -95,6 +98,7 @@ public partial class OverviewViewModel : ViewModelBase
             OnPropertyChanged(nameof(HasCost));
             OnPropertyChanged(nameof(HasTrend));
             OnPropertyChanged(nameof(RingCenterLabel));
+            OnPropertyChanged(nameof(OverviewSubtitle));
             HasNoAccount = !_settings.HasAccounts;
         }
         finally { _syncingAccounts = false; }
@@ -291,6 +295,23 @@ public partial class OverviewViewModel : ViewModelBase
         foreach (var s in snapshot) Summaries.Add(s);
         CombinedTrend = BuildCombinedTrend(results);
         IsLoadingAll = false;
+        OnPropertyChanged(nameof(OverviewSubtitle));
+    }
+
+    private string BuildOverviewSubtitle()
+    {
+        var accounts = _settings.Accounts;
+        if (accounts.Count == 0)
+        {
+            return "尚未配置账号 · 配置将保存到程序目录 data";
+        }
+
+        var providerCount = accounts.Select(a => a.ProviderId).Distinct().Count();
+        var active = _settings.ActiveAccount;
+        var activeText = active is null ? "未选择活跃账号" : $"当前 {active.DisplayLabel}";
+        var updateText = _data.LastUpdated is null ? "等待首次刷新" : $"{Formatters.FormatUpdatedAgo(_data.LastUpdated.Value)}更新";
+        var dataText = HasError ? "最近刷新失败" : updateText;
+        return $"{accounts.Count} 个账号 · {providerCount} 个提供商 · {activeText} · {dataText}";
     }
 
     /// <summary>把所有账号近 3 天的小时用量合并为按账号堆叠的趋势（不同账号不同颜色）。</summary>
@@ -586,6 +607,7 @@ public partial class OverviewViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActivePlanType));
         OnPropertyChanged(nameof(IsTokenPlan));
         OnPropertyChanged(nameof(IsPayAsYouGoPlan));
+        OnPropertyChanged(nameof(OverviewSubtitle));
     }
 
     /// <summary>构建今日全天 24 小时用量（0–23 点，未到的时段补 0）。</summary>

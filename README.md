@@ -55,8 +55,8 @@
 
 ### 从 Release 下载
 1. 前往 [Releases](../../releases) 页面
-2. 下载对应架构的 zip（`x64` = 大多数 PC，`arm64` = Surface 等 ARM 设备）
-3. 解压后运行 `AiQuotaMonitor.exe`
+2. 下载对应架构的便携版 zip（命名格式：`AiQuotaMonitor-v版本-短commit-win-架构-portable.zip`，`x64` = 大多数 PC，`arm64` = Surface 等 ARM 设备）
+3. 解压后运行 `AiQuotaMonitor.exe`；应用会在程序目录旁创建 `data/` 保存配置与日志
 
 ### 从源码构建
 ```bash
@@ -131,10 +131,19 @@ AiQuotaMonitor/
 
 ## 🔒 隐私与安全
 
-- 所有 API Key / Cookie 经 **DPAPI（CurrentUser 范围）** 加密后存于 `%LOCALAPPDATA%\AiQuotaMonitor\settings.json`
+- 所有 API Key / Cookie 经 **DPAPI（CurrentUser 范围）** 加密后存于程序当前目录 `data/settings.json`，方便 zip 解压后便携使用
+- 旧版 `%LOCALAPPDATA%\AiQuotaMonitor\settings.json` 会在首次启动时自动迁移到当前目录；「清理全部数据」会同时清理新旧位置
 - 凭据仅以 `Authorization` 头或 `Cookie` 头发送至你配置的接口地址，**不经过任何第三方**
 - 自定义提供商强制 HTTPS
 - 「清理全部数据」一键删除本地目录（账号 / 凭据 / 偏好 / 缓存 / 日志）
+
+---
+
+## 🧾 版本与构建信息
+
+- 设置页和侧边栏底部显示当前版本与短 commit，便于反馈问题时定位构建。
+- Release CI 会把 `SourceRevisionId` 写入程序集 `InformationalVersion`，应用内显示格式为 `v版本 · 短commit`。
+- 发布包统一命名为 `AiQuotaMonitor-v版本-短commit-win-架构-portable.zip`。
 
 ---
 
