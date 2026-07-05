@@ -14,7 +14,7 @@
             Padding="16">
         <StackPanel Spacing="6">
             <TextBlock x:Name="LabelHost" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
-            <TextBlock x:Name="ValueHost" FontSize="24" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+            <TextBlock x:Name="ValueHost" FontSize="23" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxLines="1"/>
             <TextBlock x:Name="SubLabelHost" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
         </StackPanel>
     </Border>

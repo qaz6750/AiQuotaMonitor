@@ -10,7 +10,7 @@
     Background="Transparent">
 
     <ScrollViewer Padding="0">
-        <StackPanel Padding="28,18,28,28" Spacing="16">
+        <StackPanel Padding="24,12,24,24" Spacing="12">
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -36,10 +36,10 @@
             </Grid>
 
 <!-- ============ 服务总览卡片 ============ -->
-            <Border Style="{StaticResource CardStyle}" Padding="22">
+            <Border Style="{StaticResource CardStyle}" Padding="18">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="124"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
@@ -49,13 +49,13 @@
                             Percentage="{Binding FiveHourPct}"
                             RingBrush="{Binding FiveHourBrush}"
                             CenterLabel="{Binding RingCenterLabel}"
-                            Diameter="104"
-                            StrokeThickness="9"/>
+                            Diameter="94"
+                            StrokeThickness="8"/>
                         <TextBlock Text="{Binding PrimaryQuotaLabel}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- 右侧信息 -->
-                    <StackPanel Grid.Column="1" Margin="30,0,0,0" Spacing="16" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Margin="24,0,0,0" Spacing="12" VerticalAlignment="Center">
                         <!-- 服务头 -->
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -76,13 +76,13 @@
 
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource MetricPillStyle}">
-                                <TextBlock Text="{Binding TopModelText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding TopModelText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextTrimming="CharacterEllipsis" MaxWidth="320"/>
                             </Border>
                             <Border Style="{StaticResource MetricPillStyle}">
-                                <TextBlock Text="{Binding PeakUsageText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding PeakUsageText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
                             </Border>
                             <Border Style="{StaticResource MetricPillStyle}">
-                                <TextBlock Text="{Binding ToolInsightText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                                <TextBlock Text="{Binding ToolInsightText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextTrimming="CharacterEllipsis" MaxWidth="260"/>
                             </Border>
                         </StackPanel>
 
@@ -128,7 +128,7 @@
             </Border>
 
             <!-- ============ KPI 行 ============ -->
-            <Grid ColumnSpacing="14">
+            <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -143,7 +143,7 @@
 
             <!-- ============ 今日用量 ============ -->
             <Border Style="{StaticResource CardStyle}" Visibility="{Binding HasTodayUsage, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel Spacing="14">
+                <StackPanel Spacing="12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -157,7 +157,7 @@
                             <TextBlock Text="查看详细统计 →" FontSize="12"/>
                         </HyperlinkButton>
                     </Grid>
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,0,2" Visibility="{Binding HasTrend, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,0,2" Visibility="{Binding HasTrend, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="小时范围" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                         <NumberBox Value="{Binding HourStart, Mode=TwoWay}" Minimum="0" Maximum="23" SpinButtonPlacementMode="Compact" Width="62"/>
                         <TextBlock Text="时至" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
