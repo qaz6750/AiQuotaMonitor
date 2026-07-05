@@ -47,7 +47,11 @@
                 <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16" MinHeight="100">
                     <StackPanel Spacing="6" HorizontalAlignment="Center">
                         <Border Width="32" Height="32" CornerRadius="8" Background="#FF6900">
-                            <TextBlock Text="M" Foreground="White" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image Width="18" Height="18" Stretch="Uniform">
+                                <Image.Source>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/Logos/xiaomi.svg"/>
+                                </Image.Source>
+                            </Image>
                         </Border>
                         <TextBlock Text="小米 MiMo" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock Text="Cookie 鉴权" FontSize="10" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center"/>

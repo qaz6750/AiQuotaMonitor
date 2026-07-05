@@ -73,16 +73,16 @@
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="18" />
-                <Setter Property="Padding" Value="20" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="18" />
             </Style>
 
             <Style x:Key="CardButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="18" />
-                <Setter Property="Padding" Value="20" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="18" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             </Style>
@@ -97,11 +97,11 @@
             </Style>
 
             <Style x:Key="MetricPillStyle" TargetType="Border">
-                <Setter Property="CornerRadius" Value="999" />
-                <Setter Property="Padding" Value="9,3" />
-                <Setter Property="MinHeight" Value="24" />
-                <Setter Property="Background" Value="{ThemeResource CardBackgroundBrush}" />
-                <Setter Property="BorderBrush" Value="#220EA5E9" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="8,4" />
+                <Setter Property="MinHeight" Value="26" />
+                <Setter Property="Background" Value="{ThemeResource SoftPanelBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
 
@@ -110,6 +110,8 @@
             <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
             <helpers:NotNullToVisibilityConverter x:Key="NotNullToVisibility"/>
             <helpers:StringToVisibilityConverter x:Key="StringToVisibility"/>
+            <helpers:InverseStringToVisibilityConverter x:Key="InverseStringToVisibility"/>
+            <helpers:LogoPathToImageSourceConverter x:Key="LogoPathToImageSource"/>
             <helpers:HexToBrushConverter x:Key="HexToBrush"/>
             <helpers:HexToSoftBrushConverter x:Key="HexToSoftBrush"/>
 

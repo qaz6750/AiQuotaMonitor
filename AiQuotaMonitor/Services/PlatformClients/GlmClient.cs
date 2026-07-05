@@ -27,7 +27,7 @@ public sealed class GlmClient : IPlatformClient
 
     private static readonly HttpClient Http = SharedHttp.Create(TimeSpan.FromSeconds(60));
 
-    private const int MaxRetry = 3;
+    private const int MaxRetry = 1;
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -49,18 +49,14 @@ public sealed class GlmClient : IPlatformClient
         var q7 = $"?startTime={Uri.EscapeDataString(s7)}&endTime={Uri.EscapeDataString(e7)}";
         var q30 = $"?startTime={Uri.EscapeDataString(s30)}&endTime={Uri.EscapeDataString(e30)}";
 
-        // 并发请求，部分失败用 try/catch 容忍
-        var quotaTask = SafeGet<Models.Api.QuotaLimitData>($"{host}/api/monitor/usage/quota/limit", apiKey, string.Empty, enableRetry);
-        var model7Task = SafeGet<Models.Api.ModelUsageData>($"{host}/api/monitor/usage/model-usage", apiKey, q7, enableRetry);
-        var toolTask = SafeGet<List<Models.Api.ToolUsageItem>>($"{host}/api/monitor/usage/tool-usage", apiKey, q7, enableRetry);
-        var model30Task = SafeGet<Models.Api.ModelUsageData>($"{host}/api/monitor/usage/model-usage", apiKey, q30, enableRetry);
-
-        await Task.WhenAll(quotaTask, model7Task, toolTask, model30Task);
-
-        var quota = await quotaTask;
-        var model7 = await model7Task;
-        var tools = await toolTask;
-        var model30 = await model30Task;
+        // 串行查询并短暂错峰，避免一次刷新产生突发并发请求。
+        var quota = await SafeGet<Models.Api.QuotaLimitData>($"{host}/api/monitor/usage/quota/limit", apiKey, string.Empty, enableRetry);
+        await Task.Delay(250);
+        var model7 = await SafeGet<Models.Api.ModelUsageData>($"{host}/api/monitor/usage/model-usage", apiKey, q7, enableRetry);
+        await Task.Delay(250);
+        var tools = await SafeGet<List<Models.Api.ToolUsageItem>>($"{host}/api/monitor/usage/tool-usage", apiKey, q7, enableRetry);
+        await Task.Delay(250);
+        var model30 = await SafeGet<Models.Api.ModelUsageData>($"{host}/api/monitor/usage/model-usage", apiKey, q30, enableRetry);
 
         return Normalize(quota, model7, tools, model30);
     }
@@ -115,6 +111,7 @@ public sealed class GlmClient : IPlatformClient
             {
                 using var req = new HttpRequestMessage(HttpMethod.Get, url + query);
                 req.Headers.TryAddWithoutValidation("Authorization", apiKey);
+                req.Headers.TryAddWithoutValidation("User-Agent", "AiQuotaMonitor/1.0");
                 req.Headers.AcceptLanguage.ParseAdd("en-US,en");
                 req.Headers.Accept.ParseAdd("application/json");
 

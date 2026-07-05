@@ -73,7 +73,7 @@ public partial class StatsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RefreshAsync() => await _data.RefreshAsync();
+    private async Task RefreshAsync() => await _data.RefreshAsync(force: true);
 
     [RelayCommand]
     private void GoOverview() => App.MainWindowNavigate(typeof(OverviewPage));

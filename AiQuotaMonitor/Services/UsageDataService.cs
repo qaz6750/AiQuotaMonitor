@@ -17,6 +17,7 @@ public sealed class UsageDataService
     private SemaphoreSlim? _refreshLock;
     private bool _refreshing;
     private bool _refreshPending;
+    private static readonly TimeSpan MinRefreshGap = TimeSpan.FromSeconds(60);
 
     public UsageResult? Current { get; private set; }
     public string? CurrentAccountId => _lastAccountId;
@@ -44,7 +45,7 @@ public sealed class UsageDataService
     }
 
     /// <summary>立即刷新一次。失败时记录 LastError 但不抛出。并发调用自动去重。</summary>
-    public async Task RefreshAsync()
+    public async Task RefreshAsync(bool force = false)
     {
         var rerun = true;
         while (rerun)
@@ -67,7 +68,7 @@ public sealed class UsageDataService
 
             try
             {
-                await RefreshCoreAsync();
+                await RefreshCoreAsync(force);
             }
             finally
             {
@@ -83,7 +84,7 @@ public sealed class UsageDataService
         }
     }
 
-    private async Task RefreshCoreAsync()
+    private async Task RefreshCoreAsync(bool force)
     {
         var settings = SettingsService.Instance;
         var acc = settings.ActiveAccount;
@@ -102,6 +103,11 @@ public sealed class UsageDataService
         {
             Current = null;
             _lastAccountId = currentId;
+        }
+        else if (!force && Current is not null && LastError is null && LastUpdated is { } last && DateTimeOffset.Now - last < MinRefreshGap)
+        {
+            Updated?.Invoke();
+            return;
         }
 
         IsLoading = true;
@@ -146,7 +152,7 @@ public sealed class UsageDataService
 
         _timer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMinutes(Math.Max(1, settings.RefreshIntervalMinutes)),
+            Interval = TimeSpan.FromMinutes(Math.Max(5, settings.RefreshIntervalMinutes)),
         };
         _timer.Tick += async (_, _) => await RefreshAsync();
         _timer.Start();

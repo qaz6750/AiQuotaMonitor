@@ -113,7 +113,8 @@ public sealed class SettingsService
             var json = File.ReadAllText(loadPath);
             var s = JsonSerializer.Deserialize<SettingsSnapshot>(json, JsonOpts) ?? new SettingsSnapshot();
 
-            RefreshIntervalMinutes = s.RefreshInterval ?? 10;
+            var loadedRefreshInterval = s.RefreshInterval ?? 10;
+            RefreshIntervalMinutes = Math.Max(5, loadedRefreshInterval);
             EnableRetry = s.EnableRetry ?? true;
             AutoRefresh = s.AutoRefresh ?? true;
             WarnOnHighUsage = s.WarnOnHighUsage ?? true;
@@ -155,7 +156,7 @@ public sealed class SettingsService
                             ?? _accounts.FirstOrDefault();
 
             // 从旧 LocalAppData 成功加载时，自动写入当前目录 data\settings.json，完成一次性便携迁移。
-            if (!string.Equals(loadPath, FilePath, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(loadPath, FilePath, StringComparison.OrdinalIgnoreCase) || loadedRefreshInterval != RefreshIntervalMinutes)
             {
                 Save();
             }
@@ -250,7 +251,7 @@ public sealed class SettingsService
 
     public void SetRefreshInterval(int minutes)
     {
-        RefreshIntervalMinutes = Math.Clamp(minutes, 1, 1440);
+        RefreshIntervalMinutes = Math.Clamp(minutes, 5, 1440);
         Save();
         Changed?.Invoke();
     }

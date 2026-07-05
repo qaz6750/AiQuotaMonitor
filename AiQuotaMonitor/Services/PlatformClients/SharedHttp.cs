@@ -14,7 +14,7 @@ internal static class SharedHttp
     {
         PooledConnectionLifetime = TimeSpan.FromMinutes(10),
         PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
-        MaxConnectionsPerServer = 24,
+        MaxConnectionsPerServer = 4,
         AutomaticDecompression = DecompressionMethods.All,
         UseCookies = false,
     };

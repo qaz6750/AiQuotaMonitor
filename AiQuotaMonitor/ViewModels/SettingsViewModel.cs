@@ -18,6 +18,9 @@ public sealed class AccountRow
     public string PlanBadge => Account.PlanBadge;
     public string ProviderName => Account.Provider.Name;
     public string ProviderGlyph => Account.Provider.Glyph;
+    public string ProviderLogoText => Account.Provider.LogoText;
+    public double ProviderLogoFontSize => Account.Provider.LogoFontSize;
+    public string ProviderLogoPath => Account.Provider.LogoPath;
     public string ProviderIconGlyph => Account.Provider.IconGlyph;
     public string ProviderColor => Account.Provider.BrandColor;
     public string KeyHint => CookieIdentityFormatter.CredentialHint(Account);
@@ -29,6 +32,9 @@ public sealed class ProviderOption
     public string Id { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
     public string Glyph { get; init; } = string.Empty;
+    public string LogoText { get; init; } = string.Empty;
+    public double LogoFontSize { get; init; } = 12;
+    public string LogoPath { get; init; } = string.Empty;
     public string IconGlyph { get; init; } = string.Empty;
     public string BrandColor { get; init; } = "#5B8DEF";
     public string Description { get; init; } = string.Empty;
@@ -133,6 +139,9 @@ public partial class SettingsViewModel : ViewModelBase
                 Id = p.Id,
                 DisplayName = p.Name,
                 Glyph = p.Glyph,
+                LogoText = p.LogoText,
+                LogoFontSize = p.LogoFontSize,
+                LogoPath = p.LogoPath,
                 IconGlyph = p.IconGlyph,
                 BrandColor = p.BrandColor,
                 Description = p.Capabilities.CredentialLabel,
@@ -304,7 +313,7 @@ public partial class SettingsViewModel : ViewModelBase
                 SaveMessage = "✓ 账号已更新";
             }
             UsageDataService.Instance.StartAutoRefresh();
-            await UsageDataService.Instance.RefreshAsync();
+            await UsageDataService.Instance.RefreshAsync(force: true);
             IsEditing = false;
         }
         finally
@@ -325,7 +334,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             UsageDataService.Instance.Clear();
             UsageDataService.Instance.StartAutoRefresh();
-            if (_s.HasApiKey) await UsageDataService.Instance.RefreshAsync();
+            if (_s.HasApiKey) await UsageDataService.Instance.RefreshAsync(force: true);
         }
     }
 
@@ -336,7 +345,7 @@ public partial class SettingsViewModel : ViewModelBase
         if (_s.SetActive(row.Account.Id))
         {
             UsageDataService.Instance.StartAutoRefresh();
-            await UsageDataService.Instance.RefreshAsync();
+            await UsageDataService.Instance.RefreshAsync(force: true);
         }
     }
 

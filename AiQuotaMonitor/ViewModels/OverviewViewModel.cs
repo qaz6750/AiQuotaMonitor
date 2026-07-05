@@ -22,6 +22,8 @@ public partial class OverviewViewModel : ViewModelBase
     private GlmAccount? _selectedAccount;
     private bool _syncingAccounts;
     private int _summaryRequestVersion;
+    private readonly Dictionary<string, (UsageResult Result, DateTimeOffset FetchedAt)> _summaryCache = new();
+    private static readonly TimeSpan SummaryCacheTtl = TimeSpan.FromMinutes(5);
 
     /// <summary>可切换的账号列表（概览页头部收纳下拉）。</summary>
     public ObservableCollection<GlmAccount> Accounts { get; } = new();
@@ -56,7 +58,7 @@ public partial class OverviewViewModel : ViewModelBase
             if (_settings.SetActive(value.Id))
             {
                 UsageDataService.Instance.StartAutoRefresh();
-                _ = UsageDataService.Instance.RefreshAsync();
+                _ = UsageDataService.Instance.RefreshAsync(force: true);
             }
         }
     }
@@ -75,7 +77,7 @@ public partial class OverviewViewModel : ViewModelBase
     private void OnAccountsChanged()
     {
         RefreshAccounts();
-        _ = LoadSummariesAsync();
+        _ = LoadSummariesAsync(force: true);
     }
 
     private void RefreshAccounts()
@@ -236,12 +238,12 @@ public partial class OverviewViewModel : ViewModelBase
     private async Task LoadAsync()
     {
         _data.StartAutoRefresh();
-        await _data.RefreshAsync();
+        await _data.RefreshAsync(force: true);
         await LoadSummariesAsync();
     }
 
     /// <summary>并发拉取所有账号的今日用量概况，用于多账号概览。</summary>
-    private async Task LoadSummariesAsync()
+    private async Task LoadSummariesAsync(bool force = false)
     {
         var version = Interlocked.Increment(ref _summaryRequestVersion);
         var accounts = _settings.Accounts.ToList();
@@ -262,16 +264,23 @@ public partial class OverviewViewModel : ViewModelBase
 
         try
         {
-            using var gate = new SemaphoreSlim(3);
+            using var gate = new SemaphoreSlim(1);
             var results = await Task.WhenAll(accounts.Select(async a =>
             {
                 if (!a.HasKey) return (a, (UsageResult?)null);
                 await gate.WaitAsync();
                 try
                 {
+                    if (!force && _summaryCache.TryGetValue(a.Id, out var entry) && DateTimeOffset.Now - entry.FetchedAt < SummaryCacheTtl)
+                    {
+                        return (a, entry.Result);
+                    }
+
                     // 活跃账号复用 UsageDataService 缓存，避免重复查询
-                    if (a.Id == _settings.ActiveAccount?.Id && _data.CurrentAccountId == a.Id && _data.Current is { } cached) return (a, cached);
-                    return (a, await PlatformClientFactory.Get(a).QueryUsageAsync(a.ApiKey, a.BaseUrl, _settings.EnableRetry));
+                    if (!force && a.Id == _settings.ActiveAccount?.Id && _data.CurrentAccountId == a.Id && _data.Current is { } cached) return (a, cached);
+                    var result = await PlatformClientFactory.Get(a).QueryUsageAsync(a.ApiKey, a.BaseUrl, _settings.EnableRetry);
+                    _summaryCache[a.Id] = (result, DateTimeOffset.Now);
+                    return (a, result);
                 }
                 catch (Exception ex) { AppLogger.Swallowed("LoadSummaries", ex); return (a, (UsageResult?)null); }
                 finally { gate.Release(); }
@@ -440,7 +449,7 @@ public partial class OverviewViewModel : ViewModelBase
         if (_settings.SetActive(item.Account.Id))
         {
             UsageDataService.Instance.StartAutoRefresh();
-            await UsageDataService.Instance.RefreshAsync();
+            await UsageDataService.Instance.RefreshAsync(force: true);
         }
         App.MainWindowNavigate(typeof(AccountDetailPage));
     }
@@ -495,13 +504,13 @@ public partial class OverviewViewModel : ViewModelBase
 
     /// <summary>手动刷新多账号概览。</summary>
     [RelayCommand]
-    private async Task RefreshSummariesAsync() => await LoadSummariesAsync();
+    private async Task RefreshSummariesAsync() => await LoadSummariesAsync(force: true);
 
     [RelayCommand]
     private async Task RefreshAsync()
     {
-        await _data.RefreshAsync();
-        await LoadSummariesAsync();
+        await _data.RefreshAsync(force: true);
+        await LoadSummariesAsync(force: true);
         _data.StartAutoRefresh();
     }
 

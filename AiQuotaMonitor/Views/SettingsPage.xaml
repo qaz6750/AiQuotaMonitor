@@ -10,7 +10,7 @@
     Background="Transparent">
 
     <ScrollViewer Padding="0">
-        <StackPanel Padding="28,18,28,40" Spacing="16">
+        <StackPanel Padding="24,12,24,32" Spacing="12">
 
             <StackPanel Spacing="3">
                 <TextBlock Text="设置" FontSize="20" FontWeight="SemiBold"/>
@@ -19,7 +19,7 @@
 
             <!-- ===== 账号管理 ===== -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="14">
+                <StackPanel Spacing="12">
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -72,9 +72,16 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <Border Width="30" Height="30" CornerRadius="9" Background="{Binding BrandColor, Converter={StaticResource HexToBrush}}">
-                                                    <TextBlock Text="{Binding Glyph}" Foreground="White" FontWeight="Bold" FontSize="12"
-                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border Width="32" Height="32" CornerRadius="11" Background="{Binding BrandColor, Converter={StaticResource HexToBrush}}">
+                                                    <Grid>
+                                                        <Image Width="18" Height="18" Stretch="Uniform"
+                                                               Source="{Binding LogoPath, Converter={StaticResource LogoPathToImageSource}}"
+                                                               Visibility="{Binding LogoPath, Converter={StaticResource StringToVisibility}}"/>
+                                                        <TextBlock Text="{Binding LogoText}" Foreground="White" FontWeight="Bold" FontSize="{Binding LogoFontSize}"
+                                                                   TextAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Visibility="{Binding LogoPath, Converter={StaticResource InverseStringToVisibility}}"/>
+                                                    </Grid>
                                                 </Border>
                                                 <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold"/>
@@ -125,10 +132,15 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- 提供商图标色块（叠加当前激活标记） -->
-                                        <Grid Width="32" Height="32" VerticalAlignment="Center">
-                                            <Border CornerRadius="9" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}"/>
-                                            <TextBlock Text="{Binding ProviderGlyph}" Foreground="White" FontWeight="Bold" FontSize="12"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Grid Width="34" Height="34" VerticalAlignment="Center">
+                                            <Border CornerRadius="12" Background="{Binding ProviderColor, Converter={StaticResource HexToBrush}}"/>
+                                            <Image Width="19" Height="19" Stretch="Uniform"
+                                                   Source="{Binding ProviderLogoPath, Converter={StaticResource LogoPathToImageSource}}"
+                                                   Visibility="{Binding ProviderLogoPath, Converter={StaticResource StringToVisibility}}"/>
+                                            <TextBlock Text="{Binding ProviderLogoText}" Foreground="White" FontWeight="Bold" FontSize="{Binding ProviderLogoFontSize}"
+                                                       TextAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding ProviderLogoPath, Converter={StaticResource InverseStringToVisibility}}"/>
                                             <Ellipse Width="10" Height="10" Fill="#3FB950" Stroke="{ThemeResource CardBackgroundBrush}" StrokeThickness="1.5"
                                                      Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVisibility}}"
                                                      HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0"/>
@@ -172,7 +184,7 @@
                     </ItemsControl>
 
                     <TextBlock Visibility="{Binding HasAccounts, Converter={StaticResource InverseBoolToVisibility}}"
-                               Text="还没有账号，点击右上角「添加账号」开始。" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                               Text="还没有账号，点击右上角「添加账号」开始。" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
 
                     <TextBlock Text="{Binding SaveMessage}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"/>
                 </StackPanel>
@@ -180,12 +192,13 @@
 
             <!-- ===== 全局刷新偏好 ===== -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="14">
+                <StackPanel Spacing="12">
                     <TextBlock Text="刷新与重试" FontSize="15" FontWeight="SemiBold"/>
 
                     <StackPanel Spacing="4">
                         <TextBlock Text="自动刷新间隔（分钟）" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
-                        <NumberBox Value="{Binding RefreshInterval, Mode=TwoWay}" Minimum="1" Maximum="1440" SpinButtonPlacementMode="Compact" SmallChange="1" LargeChange="5" Width="160" HorizontalAlignment="Left"/>
+                        <NumberBox Value="{Binding RefreshInterval, Mode=TwoWay}" Minimum="5" Maximum="1440" SpinButtonPlacementMode="Compact" SmallChange="5" LargeChange="15" Width="160" HorizontalAlignment="Left"/>
+                        <TextBlock Text="建议 10 分钟以上；过于频繁刷新可能触发服务商风控。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                     </StackPanel>
 
                     <ToggleSwitch Header="启用自动刷新" IsOn="{Binding AutoRefresh, Mode=TwoWay}"/>

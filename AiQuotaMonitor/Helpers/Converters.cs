@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace AiQuotaMonitor.Helpers;
 
@@ -43,6 +44,37 @@ public sealed class StringToVisibilityConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
+/// <summary>空字符串 → 可见。</summary>
+public sealed class InverseStringToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+        => value is string s && !string.IsNullOrEmpty(s) ? Visibility.Collapsed : Visibility.Visible;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+        => throw new NotImplementedException();
+}
+
+/// <summary>应用内 SVG logo 路径 → SvgImageSource。</summary>
+public sealed class LogoPathToImageSourceConverter : IValueConverter
+{
+    public object? Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not string path || string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            return new SvgImageSource(new Uri(path, UriKind.Absolute));
+        }
+        catch (UriFormatException ex)
+        {
+            AppLogger.Swallowed("LogoPathToImageSource", ex);
+            return null;
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+        => throw new NotImplementedException();
+}
+
 /// <summary>十六进制颜色字符串 → SolidColorBrush。</summary>
 public sealed class HexToBrushConverter : Microsoft.UI.Xaml.Data.IValueConverter
 {
@@ -81,4 +113,3 @@ public sealed class HexToSoftBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language)
         => throw new NotImplementedException();
 }
-
