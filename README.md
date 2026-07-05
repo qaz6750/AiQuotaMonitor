@@ -91,7 +91,7 @@ dotnet run --project AiQuotaMonitor/AiQuotaMonitor.csproj
 - Factory Droid：填写 Factory API Key（`fk-...`）、Bearer Token，或点「一键获取」使用网页登录 Cookie
 - OpenAI GPT：填写组织级 Admin Key，用于读取 Usage / Costs API
 - Anthropic Claude：填写组织级 Admin Key，用于读取 Usage Report API
-- OpenRouter：填写 `sk-or-v1-...` API Key，用于读取 Credits / Key API
+- OpenRouter：填写 Management Key，用于读取 Credits / Key API
 - DeepSeek：填写 DeepSeek API Key，用于读取 `/user/balance`
 - Moonshot / Kimi API：填写 Moonshot API Key，用于读取 `/v1/users/me/balance`
 - ElevenLabs：填写 ElevenLabs API Key，用于读取 `/v1/user/subscription`

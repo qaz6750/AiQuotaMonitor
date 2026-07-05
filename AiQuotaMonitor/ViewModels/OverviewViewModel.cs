@@ -345,8 +345,8 @@ public partial class OverviewViewModel : ViewModelBase
             item.SecondaryDisplayOverride = FormatMoney(paid, "CNY");
             item.SecondaryLabelOverride = "充值余额";
             item.UsageDensityOverride = granted > 0
-                ? $"赠金 {FormatMoney(granted, "CNY")} · {result.Level ?? "DeepSeek"}"
-                : result.Level ?? "DeepSeek 余额";
+                ? $"查询余额 · 赠金 {FormatMoney(granted, "CNY")} · {result.Level ?? "DeepSeek"}"
+                : $"查询余额 · {result.Level ?? "DeepSeek 余额"}";
             item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
             item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor(item.FiveHourPct > 0 ? "#3FB950" : "#F0883E"));
             return;
@@ -356,10 +356,15 @@ public partial class OverviewViewModel : ViewModelBase
         {
             var currency = account.ProviderId == "moonshot" ? "CNY" : "USD";
             item.PrimaryDisplayOverride = FormatMoney(result.FiveHour?.Remaining ?? result.FiveHour?.CurrentUsage ?? 0, currency);
-            item.PrimaryLabelOverride = account.ProviderId == "moonshot" ? "可用余额" : "剩余额度";
+            item.PrimaryLabelOverride = "可用余额";
             item.SecondaryDisplayOverride = FormatMoney(result.Weekly?.CurrentUsage ?? 0, currency);
             item.SecondaryLabelOverride = account.ProviderId == "moonshot" ? "现金余额" : "本月消费";
-            item.UsageDensityOverride = result.Level ?? account.Provider.Name;
+            var voucher = account.ProviderId == "moonshot"
+                ? result.ModelUsage.FirstOrDefault(m => m.Model == "Voucher")?.TotalTokens / 100.0
+                : null;
+            item.UsageDensityOverride = voucher is > 0
+                ? $"查询余额 · 代金券 {FormatMoney(voucher.Value, currency)} · {result.Level ?? account.Provider.Name}"
+                : $"查询余额 · {result.Level ?? account.Provider.Name}";
             item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
             item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(item.FiveHourPct));
             return;
@@ -685,8 +690,8 @@ public partial class OverviewViewModel : ViewModelBase
             CostText = Formatters.FormatCost(officialCost);
             CostWindowLabel = "近 7 天官方费用";
             CostHasFallback = false;
-            CostBreakdownText = $"官方费用约 ¥{officialCost:F2}；美元账单按 1 USD ≈ ¥7.25 换算。";
-            CostFormulaText = "费用 = 官方 cost_usd × 7.25；token 图按时段展示。";
+            CostBreakdownText = $"官方费用约 ¥{officialCost:F2}；美元账单按 1 USD ≈ ¥{CurrencyRates.UsdToCny:F2} 换算。";
+            CostFormulaText = $"费用 = 官方 cost_usd × {CurrencyRates.UsdToCny:F2}；token 图按时段展示。";
         }
         else if ((CostCalculator.EstimateFromTrend(r.Trend7d) ?? CostCalculator.EstimateFromModels(r.ModelUsage)) is { } cost)
         {

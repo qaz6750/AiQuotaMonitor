@@ -257,7 +257,7 @@ public static class Providers
             HasResetTime = false,
             HasEstimate = false,
             HasMcp = false,
-            CredentialLabel = "OpenRouter API Key",
+            CredentialLabel = "OpenRouter Management Key",
             PrimaryQuotaLabel = "Credits Used",
             SecondaryQuotaLabel = "Monthly Spend",
             RingCenterLabel = "OR",
@@ -302,7 +302,7 @@ public static class Providers
         LogoFontSize = 14,
         IconGlyph = "\uE708",
         BrandColor = "#111827",
-        DefaultBaseUrl = "https://api.moonshot.ai/v1",
+        DefaultBaseUrl = "https://api.moonshot.cn/v1",
         DocsUrl = "https://platform.moonshot.ai/console/api-keys",
         SupportedPlan = PlanType.PayAsYouGo,
         Capabilities = new ProviderCapabilities

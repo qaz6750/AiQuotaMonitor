@@ -15,7 +15,7 @@ public sealed class OpenRouterClient : IPlatformClient
     public async Task<UsageResult> QueryUsageAsync(string credential, string baseUrl, bool enableRetry = true)
     {
         var token = credential.Trim();
-        if (string.IsNullOrWhiteSpace(token)) throw new InvalidOperationException("未配置 OpenRouter API Key。");
+        if (string.IsNullOrWhiteSpace(token)) throw new InvalidOperationException("未配置 OpenRouter Management Key。");
         var host = BalanceHttp.NormalizeHost(baseUrl, "https://openrouter.ai/api/v1");
         using var credits = await BalanceHttp.GetJsonAsync(Http, $"{host}/credits", token);
         JsonDocument? key = null;
@@ -102,7 +102,7 @@ public sealed class MoonshotClient : IPlatformClient
     {
         var token = credential.Trim();
         if (string.IsNullOrWhiteSpace(token)) throw new InvalidOperationException("未配置 Moonshot API Key。");
-        var host = BalanceHttp.NormalizeHost(baseUrl, "https://api.moonshot.ai/v1");
+        var host = BalanceHttp.NormalizeHost(baseUrl, "https://api.moonshot.cn/v1");
         using var doc = await BalanceHttp.GetJsonAsync(Http, $"{host}/users/me/balance", token);
         var root = doc.RootElement.TryGetProperty("data", out var d) ? d : doc.RootElement;
         var available = BalanceHttp.Num(root, "available_balance", "availableBalance") ?? 0;

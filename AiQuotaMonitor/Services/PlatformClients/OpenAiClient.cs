@@ -78,7 +78,7 @@ public sealed class OpenAiClient : IPlatformClient
         var todayTokens = trend.PerModel?.Sum(p => p.YValue.Where((_, i) => i < trend.XTime.Count && trend.XTime[i].StartsWith(todayKey, StringComparison.Ordinal)).Sum(v => v ?? 0)) ?? 0;
         var totalTokens = trend.TotalTokens;
         var costUsd = SumCosts(costsRoot);
-        var costCny = costUsd * 7.25;
+        var costCny = costUsd * CurrencyRates.UsdToCny;
 
         return new UsageResult
         {

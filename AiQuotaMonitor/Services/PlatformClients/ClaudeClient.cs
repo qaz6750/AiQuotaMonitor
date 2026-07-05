@@ -72,7 +72,7 @@ public sealed class ClaudeClient : IPlatformClient
         var trend = BuildTrend(byHour, perModel);
         var todayKey = now.ToString("yyyy-MM-dd");
         var todayTokens = trend.XTime.Select((x, i) => x.StartsWith(todayKey, StringComparison.Ordinal) ? trend.YValue[i] ?? 0 : 0).Sum();
-        var costCny = totalCostUsd * 7.25;
+        var costCny = totalCostUsd * CurrencyRates.UsdToCny;
 
         return new UsageResult
         {
