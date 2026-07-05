@@ -66,22 +66,25 @@ public sealed class DeepSeekClient : IPlatformClient
         {
             infos = new List<JsonElement>();
         }
-        JsonElement? usd = null;
+        JsonElement? selected = null;
         foreach (var item in infos)
         {
-            if ((BalanceHttp.Str(item, "currency") ?? string.Empty).Equals("USD", StringComparison.OrdinalIgnoreCase)) { usd = item; break; }
-            usd ??= item;
+            if ((BalanceHttp.Str(item, "currency") ?? string.Empty).Equals("CNY", StringComparison.OrdinalIgnoreCase)) { selected = item; break; }
+            selected ??= item;
         }
-        var e = usd ?? root;
+        var e = selected ?? root;
+        var currency = BalanceHttp.Str(e, "currency") ?? "CNY";
+        var symbol = BalanceHttp.CurrencySymbol(currency);
         var total = BalanceHttp.Num(e, "total_balance", "totalBalance") ?? 0;
         var paid = BalanceHttp.Num(e, "topped_up_balance", "toppedUpBalance") ?? 0;
         var granted = BalanceHttp.Num(e, "granted_balance", "grantedBalance") ?? 0;
+        var available = BalanceHttp.Bool(root, "is_available") != false;
         return new UsageResult
         {
-            Level = BalanceHttp.Bool(root, "is_available") == false ? "余额不可用" : $"余额 ${total:F2}",
-            FiveHour = BalanceHttp.MoneyQuota("DeepSeek 余额", Math.Max(0, paid + granted - total), paid + granted, "USD"),
-            Weekly = BalanceHttp.MoneyQuota("已充值余额", paid, paid + granted, "USD"),
-            ModelUsage = BalanceHttp.MoneyModels(("Paid", paid), ("Granted", granted)),
+            Level = available ? $"可用 {symbol}{total:F2}" : $"余额不可用 · {symbol}{total:F2}",
+            FiveHour = BalanceHttp.MoneyValue("可用余额", total, currency, available ? 100 : 0),
+            Weekly = BalanceHttp.MoneyValue("充值余额", paid, currency),
+            ModelUsage = BalanceHttp.MoneyModels(("可用余额", total), ("充值余额", paid), ("赠金余额", granted)),
             TotalDays = 0,
             ActiveDays = 0,
             FetchedAt = DateTimeOffset.Now,
@@ -190,6 +193,25 @@ internal static class BalanceHttp
             Remaining = total > 0 ? Math.Max(0, total - used) : null,
         };
     }
+
+    public static QuotaInfo MoneyValue(string label, double value, string currency, double percentage = 0)
+    {
+        return new QuotaInfo
+        {
+            Kind = QuotaKind.Other,
+            DisplayType = label,
+            Percentage = Math.Clamp(percentage, 0, 100),
+            CurrentUsage = value,
+            Remaining = value,
+        };
+    }
+
+    public static string CurrencySymbol(string currency) => currency.ToUpperInvariant() switch
+    {
+        "CNY" => "¥",
+        "USD" => "$",
+        _ => currency + " ",
+    };
 
     public static QuotaInfo CountQuota(string label, double used, double total, double? resetUnix)
     {

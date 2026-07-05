@@ -17,6 +17,11 @@ public sealed class AccountSummaryItem
     public long SecondaryUsed { get; set; }
     public long SecondaryLimit { get; set; }
     public double EstimatedCostCny { get; set; }
+    public string? UsageDensityOverride { get; set; }
+    public string? PrimaryDisplayOverride { get; set; }
+    public string? SecondaryDisplayOverride { get; set; }
+    public string? PrimaryLabelOverride { get; set; }
+    public string? SecondaryLabelOverride { get; set; }
 
     // 是否 Token Plan（显示 token 量而非百分比）
     public bool IsTokenPlan => Account.PlanType == PlanType.Token;
@@ -25,25 +30,25 @@ public sealed class AccountSummaryItem
     // 展示文本
     public string TodayTokensText => TodayTokens > 0 ? Formatters.FormatTokens(TodayTokens) : "—";
     public string CostHint => EstimatedCostCny > 0 ? $"≈ {Formatters.FormatCost(EstimatedCostCny)}" : "费用待换算";
-    public string UsageDensityText => TodayTokens > 0
+    public string UsageDensityText => UsageDensityOverride ?? (TodayTokens > 0
         ? $"今日 {TodayTokensText} · {CostHint}"
-        : HasError ? "刷新失败，点击进入查看" : "今日暂无用量";
+        : HasError ? "刷新失败，点击进入查看" : "今日暂无用量");
     public string FiveHourPctText => $"{FiveHourPct:F0}%";
     public string WeeklyPctText => $"{WeeklyPct:F0}%";
 
     // 主/次配额显示（Token Plan 显示 token 量，Coding Plan 显示百分比）
-    public string PrimaryDisplay => IsTokenPlan && PrimaryLimit > 0
+    public string PrimaryDisplay => PrimaryDisplayOverride ?? (IsTokenPlan && PrimaryLimit > 0
         ? $"{Formatters.FormatTokens(PrimaryUsed)}"
         : IsPayAsYouGoPlan
             ? TodayTokensText
-        : FiveHourPctText;
-    public string SecondaryDisplay => IsTokenPlan && SecondaryLimit > 0
+        : FiveHourPctText);
+    public string SecondaryDisplay => SecondaryDisplayOverride ?? (IsTokenPlan && SecondaryLimit > 0
         ? $"{Formatters.FormatTokens(SecondaryUsed)}"
         : IsPayAsYouGoPlan
             ? "按量"
-        : WeeklyPctText;
-    public string PrimaryLabel => Account.Provider.Capabilities.PrimaryQuotaLabel.Replace("额度", "");
-    public string SecondaryLabel => Account.Provider.Capabilities.SecondaryQuotaLabel.Replace("额度", "");
+        : WeeklyPctText);
+    public string PrimaryLabel => PrimaryLabelOverride ?? Account.Provider.Capabilities.PrimaryQuotaLabel.Replace("额度", "");
+    public string SecondaryLabel => SecondaryLabelOverride ?? Account.Provider.Capabilities.SecondaryQuotaLabel.Replace("额度", "");
 
     public SolidColorBrush BarBrush { get; set; } = new(Windows.UI.Color.FromArgb(255, 0x9C, 0xA3, 0xAF));
     public bool HasError { get; set; }

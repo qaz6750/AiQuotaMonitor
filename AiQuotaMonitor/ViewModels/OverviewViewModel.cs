@@ -295,18 +295,7 @@ public partial class OverviewViewModel : ViewModelBase
                 if (item is null) continue;
                 if (r is not null)
                 {
-                    var today = ExtractToday(r.Trend7d);
-                    item.TodayTokens = (long)(today?.TotalTokens ?? 0);
-                    item.FiveHourPct = r.FiveHour?.Percentage ?? 0;
-                    item.PrimaryUsed = (long)(r.FiveHour?.CurrentUsage ?? 0);
-                    item.PrimaryLimit = (long)(r.FiveHour?.Total ?? 0);
-                    item.WeeklyPct = r.Weekly?.Percentage ?? 0;
-                    item.SecondaryUsed = (long)(r.Weekly?.CurrentUsage ?? 0);
-                    item.SecondaryLimit = (long)(r.Weekly?.Total ?? 0);
-                    item.EstimatedCostCny = (a.PlanType == PlanType.PayAsYouGo && r.Weekly?.CurrentUsage is double c && c > 0)
-                        ? c
-                        : CostCalculator.EstimateFromTrend(r.Trend7d)?.TotalCny ?? 0;
-                    item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(Math.Max(item.FiveHourPct, item.WeeklyPct)));
+                    ApplySummaryResult(item, a, r);
                     total += item.TodayTokens;
                 }
                 else
@@ -331,6 +320,69 @@ public partial class OverviewViewModel : ViewModelBase
             if (version == _summaryRequestVersion) IsLoadingAll = false;
         }
     }
+
+    private static void ApplySummaryResult(AccountSummaryItem item, GlmAccount account, UsageResult result)
+    {
+        var today = ExtractToday(result.Trend7d);
+        item.TodayTokens = (long)(today?.TotalTokens ?? 0);
+        item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
+        item.PrimaryUsed = (long)(result.FiveHour?.CurrentUsage ?? 0);
+        item.PrimaryLimit = (long)(result.FiveHour?.Total ?? 0);
+        item.WeeklyPct = result.Weekly?.Percentage ?? 0;
+        item.SecondaryUsed = (long)(result.Weekly?.CurrentUsage ?? 0);
+        item.SecondaryLimit = (long)(result.Weekly?.Total ?? 0);
+        item.EstimatedCostCny = (account.PlanType == PlanType.PayAsYouGo && result.Weekly?.CurrentUsage is double c && c > 0)
+            ? c
+            : CostCalculator.EstimateFromTrend(result.Trend7d)?.TotalCny ?? 0;
+
+        if (account.ProviderId == "deepseek")
+        {
+            var available = result.FiveHour?.CurrentUsage ?? 0;
+            var paid = result.Weekly?.CurrentUsage ?? 0;
+            var granted = result.ModelUsage.FirstOrDefault(m => m.Model == "赠金余额")?.TotalTokens / 100.0 ?? 0;
+            item.PrimaryDisplayOverride = FormatMoney(available, "CNY");
+            item.PrimaryLabelOverride = "可用余额";
+            item.SecondaryDisplayOverride = FormatMoney(paid, "CNY");
+            item.SecondaryLabelOverride = "充值余额";
+            item.UsageDensityOverride = granted > 0
+                ? $"赠金 {FormatMoney(granted, "CNY")} · {result.Level ?? "DeepSeek"}"
+                : result.Level ?? "DeepSeek 余额";
+            item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
+            item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor(item.FiveHourPct > 0 ? "#3FB950" : "#F0883E"));
+            return;
+        }
+
+        if (account.ProviderId is "openrouter" or "moonshot")
+        {
+            var currency = account.ProviderId == "moonshot" ? "CNY" : "USD";
+            item.PrimaryDisplayOverride = FormatMoney(result.FiveHour?.Remaining ?? result.FiveHour?.CurrentUsage ?? 0, currency);
+            item.PrimaryLabelOverride = account.ProviderId == "moonshot" ? "可用余额" : "剩余额度";
+            item.SecondaryDisplayOverride = FormatMoney(result.Weekly?.CurrentUsage ?? 0, currency);
+            item.SecondaryLabelOverride = account.ProviderId == "moonshot" ? "现金余额" : "本月消费";
+            item.UsageDensityOverride = result.Level ?? account.Provider.Name;
+            item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
+            item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(item.FiveHourPct));
+            return;
+        }
+
+        if (account.ProviderId == "elevenlabs")
+        {
+            item.PrimaryDisplayOverride = Formatters.FormatTokens(result.FiveHour?.CurrentUsage ?? 0);
+            item.PrimaryLabelOverride = "字符已用";
+            item.SecondaryDisplayOverride = Formatters.FormatTokens(result.Weekly?.CurrentUsage ?? 0);
+            item.SecondaryLabelOverride = "Voice Slots";
+            item.UsageDensityOverride = result.Level ?? "ElevenLabs 订阅";
+        }
+
+        item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(Math.Max(item.FiveHourPct, item.WeeklyPct)));
+    }
+
+    private static string FormatMoney(double value, string currency) => currency.ToUpperInvariant() switch
+    {
+        "USD" => $"${value:F2}",
+        "CNY" => $"¥{value:F2}",
+        _ => $"{currency} {value:F2}",
+    };
 
     public bool HasCombinedTrend => CombinedTrend is not null;
 
