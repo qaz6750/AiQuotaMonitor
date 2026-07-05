@@ -28,6 +28,17 @@ public sealed class UsageDataService
 
     private UsageDataService() { }
 
+    public void Clear()
+    {
+        Current = null;
+        LastUpdated = null;
+        LastError = null;
+        _lastAccountId = null;
+        IsLoading = false;
+        LoadingChanged?.Invoke();
+        Updated?.Invoke();
+    }
+
     /// <summary>立即刷新一次。失败时记录 LastError 但不抛出。并发调用自动去重。</summary>
     public async Task RefreshAsync()
     {
@@ -59,7 +70,7 @@ public sealed class UsageDataService
         var acc = settings.ActiveAccount;
         if (acc is null || !acc.HasKey)
         {
-            Current = null;
+            Clear();
             LastError = "尚未配置凭据，请先到「设置」填写。";
             Updated?.Invoke();
             return;

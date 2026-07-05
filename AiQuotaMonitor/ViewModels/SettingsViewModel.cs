@@ -314,12 +314,19 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void DeleteAccount(AccountRow? row)
+    private async Task DeleteAccountAsync(AccountRow? row)
     {
         if (row is null) return;
         var id = row.Account.Id;
+        var wasCurrent = _s.ActiveAccount?.Id == id;
         _s.RemoveAccount(id);
         if (IsEditing && EditingId == id) IsEditing = false;
+        if (wasCurrent)
+        {
+            UsageDataService.Instance.Clear();
+            UsageDataService.Instance.StartAutoRefresh();
+            if (_s.HasApiKey) await UsageDataService.Instance.RefreshAsync();
+        }
     }
 
     [RelayCommand]
@@ -343,6 +350,7 @@ public partial class SettingsViewModel : ViewModelBase
         _s.SetWarnThreshold(WarnThreshold);
         _s.SetAppTheme(AppThemeIndex switch { 1 => "Light", 2 => "Dark", _ => "System" });
         ApplyThemeToRoot();
+        UsageDataService.Instance.StartAutoRefresh();
         SaveMessage = "✓ 偏好已保存";
     }
 
@@ -368,6 +376,8 @@ public partial class SettingsViewModel : ViewModelBase
     private void ResetAll()
     {
         _s.ResetAll();
+        UsageDataService.Instance.StopAutoRefresh();
+        UsageDataService.Instance.Clear();
         App.MainWindowNavigate(typeof(WelcomePage));
     }
 
