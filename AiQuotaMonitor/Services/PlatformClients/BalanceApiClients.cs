@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using AiQuotaMonitor.Helpers;
 using AiQuotaMonitor.Models;
 
 namespace AiQuotaMonitor.Services;
@@ -18,7 +19,8 @@ public sealed class OpenRouterClient : IPlatformClient
         var host = BalanceHttp.NormalizeHost(baseUrl, "https://openrouter.ai/api/v1");
         using var credits = await BalanceHttp.GetJsonAsync(Http, $"{host}/credits", token);
         JsonDocument? key = null;
-        try { key = await BalanceHttp.GetJsonAsync(Http, $"{host}/key", token); } catch { }
+        try { key = await BalanceHttp.GetJsonAsync(Http, $"{host}/key", token); }
+        catch (Exception ex) { AppLogger.Swallowed("OpenRouter Key API", ex); }
 
         var data = credits.RootElement.TryGetProperty("data", out var d) ? d : credits.RootElement;
         var total = BalanceHttp.Num(data, "total_credits", "totalCredits") ?? 0;

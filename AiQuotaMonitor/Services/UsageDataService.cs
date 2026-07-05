@@ -16,6 +16,7 @@ public sealed class UsageDataService
     private string? _lastAccountId;
     private SemaphoreSlim? _refreshLock;
     private bool _refreshing;
+    private bool _refreshPending;
 
     public UsageResult? Current { get; private set; }
     public string? CurrentAccountId => _lastAccountId;
@@ -28,39 +29,57 @@ public sealed class UsageDataService
 
     private UsageDataService() { }
 
-    public void Clear()
+    public void Clear(bool notify = true)
     {
         Current = null;
         LastUpdated = null;
         LastError = null;
         _lastAccountId = null;
         IsLoading = false;
-        LoadingChanged?.Invoke();
-        Updated?.Invoke();
+        if (notify)
+        {
+            LoadingChanged?.Invoke();
+            Updated?.Invoke();
+        }
     }
 
     /// <summary>立即刷新一次。失败时记录 LastError 但不抛出。并发调用自动去重。</summary>
     public async Task RefreshAsync()
     {
-        // 并发去重：多 ViewModel 同时触发刷新时只执行一次
-        _refreshLock ??= new SemaphoreSlim(1, 1);
-        await _refreshLock.WaitAsync();
-        try
+        var rerun = true;
+        while (rerun)
         {
-            if (_refreshing) return;
-            _refreshing = true;
-        }
-        finally { _refreshLock.Release(); }
-
-        try
-        {
-            await RefreshCoreAsync();
-        }
-        finally
-        {
+            rerun = false;
+            // 并发去重：刷新进行中收到新请求时标记 pending，当前刷新结束后自动补跑一次。
+            _refreshLock ??= new SemaphoreSlim(1, 1);
             await _refreshLock.WaitAsync();
-            try { _refreshing = false; }
+            try
+            {
+                if (_refreshing)
+                {
+                    _refreshPending = true;
+                    return;
+                }
+                _refreshing = true;
+                _refreshPending = false;
+            }
             finally { _refreshLock.Release(); }
+
+            try
+            {
+                await RefreshCoreAsync();
+            }
+            finally
+            {
+                await _refreshLock.WaitAsync();
+                try
+                {
+                    _refreshing = false;
+                    rerun = _refreshPending;
+                    if (rerun) _refreshPending = false;
+                }
+                finally { _refreshLock.Release(); }
+            }
         }
     }
 
@@ -70,8 +89,9 @@ public sealed class UsageDataService
         var acc = settings.ActiveAccount;
         if (acc is null || !acc.HasKey)
         {
-            Clear();
+            Clear(notify: false);
             LastError = "尚未配置凭据，请先到「设置」填写。";
+            LoadingChanged?.Invoke();
             Updated?.Invoke();
             return;
         }
@@ -94,6 +114,11 @@ public sealed class UsageDataService
             // 按平台分发：GLM 用 GlmClient，MiMo 用 MiMoClient
             var client = PlatformClientFactory.Get(acc);
             var result = await client.QueryUsageAsync(acc.ApiKey, acc.BaseUrl, settings.EnableRetry);
+            if (SettingsService.Instance.ActiveAccount?.Id != currentId)
+            {
+                AppLogger.Info($"丢弃过期账号刷新结果: {acc.Provider.Name} ({acc.Id[..6]})");
+                return;
+            }
             Current = result;
             LastUpdated = DateTimeOffset.Now;
             LastError = null;
