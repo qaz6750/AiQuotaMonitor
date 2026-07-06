@@ -28,7 +28,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2">
                             <TextBlock Text="账号管理" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="已接入：GLM、Kimi、MiMo、MiniMax、Factory、GPT、Claude、OpenRouter、DeepSeek、Moonshot/Kimi API、ElevenLabs。Cookie 平台会提示并默认显示网页登录账户名。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="已接入：GLM、Kimi、OpenCode Go、MiMo、MiniMax、Factory、GPT、Claude、OpenRouter、DeepSeek、Moonshot/Kimi API、ElevenLabs。Cookie 平台会提示并默认显示网页登录账户名。" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Grid.Column="1" Command="{Binding StartAddCommand}" Padding="14,7" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">

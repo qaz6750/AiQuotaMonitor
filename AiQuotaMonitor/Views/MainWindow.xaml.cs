@@ -55,6 +55,8 @@ public sealed partial class MainWindow : Window
 
         var tag = page == typeof(OverviewPage) ? "overview"
                 : page == typeof(StatsPage) ? "stats"
+                : page == typeof(ProvidersPage) ? "providers"
+                : page == typeof(LogsPage) ? "logs"
                 : page == typeof(SettingsPage) ? "settings"
                 : null;
         if (tag is null) return;
@@ -63,6 +65,8 @@ public sealed partial class MainWindow : Window
         {
             "overview" => NavOverview,
             "stats" => NavStats,
+            "providers" => NavProviders,
+            "logs" => NavLogs,
             "settings" => NavSettings,
             _ => (RadioButton?)null,
         };
@@ -82,6 +86,8 @@ public sealed partial class MainWindow : Window
             {
                 "overview" => typeof(OverviewPage),
                 "stats" => typeof(StatsPage),
+                "providers" => typeof(ProvidersPage),
+                "logs" => typeof(LogsPage),
                 "settings" => typeof(SettingsPage),
                 _ => (Type?)null,
             };

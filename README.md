@@ -3,7 +3,7 @@
 ![CI](https://github.com/qaz6750/AiQuotaMonitor/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/qaz6750/AiQuotaMonitor/actions/workflows/release.yml/badge.svg)
 
-基于 **WinUI 3 (Windows App SDK 1.6) + .NET 8** 的原生 Windows 桌面应用，监控 AI 服务配额用量。参考 CodexBar / Quotio 的 provider 设计，支持 **GLM**、**Kimi Code**、**MiMo**、**MiniMax**、**Factory Droid**、**OpenAI GPT**、**Anthropic Claude**、**OpenRouter**、**DeepSeek**、**Moonshot / Kimi API** 与 **ElevenLabs**，多账号管理、实时刷新、趋势统计与费用换算。
+基于 **WinUI 3 (Windows App SDK 1.6) + .NET 8** 的原生 Windows 桌面应用，监控 AI 服务配额用量。参考 CodexBar / Quotio 的 provider 设计，支持 **GLM**、**Kimi Code**、**OpenCode Go**、**MiMo**、**MiniMax**、**Factory Droid**、**OpenAI GPT**、**Anthropic Claude**、**OpenRouter**、**DeepSeek**、**Moonshot / Kimi API** 与 **ElevenLabs**，多账号管理、实时刷新、趋势统计、Providers/Logs 侧边栏与费用换算。
 
 > 原生、清爽、自动跟随系统深浅色，Mica 材质背景，半透明标题栏。
 
@@ -14,6 +14,7 @@
 ### 多提供商架构
 - **智谱 GLM** — Coding Plan 订阅制 / API 按量付费，API Key 鉴权，5h/周/MCP 配额 + 用量趋势 + 等价花费
 - **Kimi Code** — Coding Plan 订阅制，API Key / OAuth Token 鉴权，5h/周额度
+- **OpenCode Go** — Go 订阅 API Key，读取模型目录并按官方 $12/5h、$30/周、$60/月窗口展示；若后续提供控制台用量 JSON，可直接归一化 `rollingUsage` / `weeklyUsage` / `monthlyUsage`
 - **小米 MiMo** — Token Plan 按量计费，Cookie 鉴权，套餐/月度 token 用量，一键获取 Cookie
 - **MiniMax Token Plan** — Token Plan 订阅 Key，5h/周额度
 - **Factory Droid** — API 按量付费，Factory API Key / Bearer Token 鉴权，Standard / Premium token 用量
@@ -39,6 +40,8 @@
 - **费用换算** — API 按量付费优先展示官方费用；没有官方费用时按模型 token 定价估算
 - **自定义范围** — 选起止日期/小时计算 token 总量，点柱子设定起始时间
 - **配色进度条** — 按用量自动变色（蓝→黄→红）
+- **Providers** — 参考 Quotio 的 provider-first 组织方式，按提供商聚合账号、能力和接入状态
+- **Logs** — 本地日志浏览、搜索、刷新与清理，便于排查 provider 请求和刷新失败
 
 ### 体验与安全
 - **半透明标题栏** — Mica 材质 + 透视效果
@@ -86,6 +89,7 @@ dotnet run --project AiQuotaMonitor/AiQuotaMonitor.csproj
 **凭据获取：**
 - 智谱 API Key：[open.bigmodel.cn](https://open.bigmodel.cn) → 控制台 → API Keys
 - Kimi Code：在 Kimi Code Console 创建 API Key / OAuth Token
+- OpenCode Go：填写 OpenCode Go API Key；Base URL 默认 `https://opencode.ai/zen/go/v1`
 - MiMo Cookie：点「一键获取」→ 应用内 WebView2 登录 → 自动提取
 - MiniMax：填写 Subscription Key
 - Factory Droid：填写 Factory API Key（`fk-...`）、Bearer Token，或点「一键获取」使用网页登录 Cookie

@@ -17,6 +17,7 @@ public static class PlatformClientFactory
 {
     private static readonly GlmClient Glm = new();
     private static readonly KimiClient Kimi = new();
+    private static readonly OpenCodeGoClient OpenCodeGo = new();
     private static readonly MiniMaxClient MiniMax = new();
     private static readonly MiMoClient MiMo = new();
     private static readonly FactoryClient Factory = new();
@@ -33,6 +34,7 @@ public static class PlatformClientFactory
         return account.ProviderId switch
         {
             "kimi" => Kimi,
+            "opencode-go" => OpenCodeGo,
             "minimax" => MiniMax,
             "mimo" => MiMo,
             "factory" => Factory,

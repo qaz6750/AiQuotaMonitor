@@ -216,7 +216,7 @@ public static class Providers
         Glyph = "C",
         LogoText = "Claude",
         LogoFontSize = 7.5,
-        LogoPath = "ms-appx:///Assets/Logos/anthropic.svg",
+        LogoPath = "ms-appx:///Assets/Logos/claude-code.svg",
         IconGlyph = "\uE90A",
         BrandColor = "#D97757",
         DefaultBaseUrl = "https://api.anthropic.com",
@@ -346,8 +346,35 @@ public static class Providers
         },
     };
 
+    /// <summary>OpenCode Go（订阅用量限制 / 模型目录）。</summary>
+    public static readonly ProviderDescriptor OpenCodeGo = new()
+    {
+        Id = "opencode-go",
+        Name = "OpenCode Go",
+        Glyph = "OC",
+        LogoText = "Go",
+        LogoFontSize = 11,
+        IconGlyph = "\uE756",
+        BrandColor = "#111827",
+        DefaultBaseUrl = "https://opencode.ai/zen/go/v1",
+        DocsUrl = "https://opencode.ai/docs/go",
+        SupportedPlan = PlanType.Coding,
+        Capabilities = new ProviderCapabilities
+        {
+            HasTodayUsage = false,
+            HasTrend = false,
+            HasEstimate = false,
+            HasMcp = false,
+            HasCost = false,
+            CredentialLabel = "OpenCode Go API Key",
+            PrimaryQuotaLabel = "5 小时额度",
+            SecondaryQuotaLabel = "周额度",
+            RingCenterLabel = "Go",
+        },
+    };
+
     /// <summary>全部已启用的提供商。</summary>
-    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, MiMo, MiniMax, Factory, Gpt, Claude, OpenRouter, DeepSeek, Moonshot, ElevenLabs };
+    public static readonly IReadOnlyList<ProviderDescriptor> All = new[] { Glm, Kimi, OpenCodeGo, MiMo, MiniMax, Factory, Gpt, Claude, OpenRouter, DeepSeek, Moonshot, ElevenLabs };
 
     /// <summary>按 id 查找。</summary>
     public static ProviderDescriptor GetById(string? id)
