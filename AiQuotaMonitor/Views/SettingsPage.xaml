@@ -206,6 +206,15 @@
                     <ToggleSwitch Header="高用量警告提示" IsOn="{Binding WarnOnHighUsage, Mode=TwoWay}"/>
 
                     <StackPanel Spacing="4">
+                        <TextBlock Text="日志详细程度" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
+                        <ComboBox SelectedIndex="{Binding LogLevelIndex, Mode=TwoWay}" MinWidth="200">
+                            <x:String>仅错误</x:String>
+                            <x:String>普通</x:String>
+                            <x:String>最详细（包含 API 返回）</x:String>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
                         <TextBlock Text="高用量警告阈值（%）" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
                         <NumberBox Value="{Binding WarnThreshold, Mode=TwoWay}" Minimum="1" Maximum="100" SpinButtonPlacementMode="Compact" Width="160" HorizontalAlignment="Left"/>
                     </StackPanel>

@@ -104,13 +104,13 @@
                         <RadioButton x:Name="NavProviders" GroupName="Nav" Tag="providers" Style="{StaticResource NavRadioButtonStyle}" Checked="Nav_Checked">
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon Glyph="&#xE774;" FontSize="15" Foreground="{ThemeResource SecondaryTextColor}"/>
-                                <TextBlock Text="Providers" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="提供商" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                         </RadioButton>
                         <RadioButton x:Name="NavLogs" GroupName="Nav" Tag="logs" Style="{StaticResource NavRadioButtonStyle}" Checked="Nav_Checked">
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon Glyph="&#xF000;" FontSize="15" Foreground="{ThemeResource SecondaryTextColor}"/>
-                                <TextBlock Text="Logs" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="日志" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                         </RadioButton>
                     </StackPanel>

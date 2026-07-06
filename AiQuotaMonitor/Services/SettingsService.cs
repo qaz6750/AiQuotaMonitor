@@ -19,6 +19,7 @@ public sealed class SettingsSnapshot
     [JsonPropertyName("warnOnHighUsage")] public bool? WarnOnHighUsage { get; set; }
     [JsonPropertyName("appTheme")] public string? AppTheme { get; set; }
     [JsonPropertyName("warnThreshold")] public int? WarnThreshold { get; set; }
+    [JsonPropertyName("logLevel")] public string? LogLevel { get; set; }
 
     // —— 旧版（≤ 单账号）字段，仅用于一次性迁移 ——
     [JsonPropertyName("apiKeyEnc")] public string? LegacyApiKeyEnc { get; set; }
@@ -77,6 +78,8 @@ public sealed class SettingsService
     public string AppTheme { get; private set; } = "System";
     /// <summary>高用量警告阈值（百分比）。</summary>
     public int WarnThreshold { get; private set; } = 80;
+    /// <summary>日志详细程度：Error / Info / Verbose。</summary>
+    public string LogLevel { get; private set; } = "Info";
 
     /// <summary>全局设置变更事件。</summary>
     public event Action? Changed;
@@ -120,6 +123,7 @@ public sealed class SettingsService
             WarnOnHighUsage = s.WarnOnHighUsage ?? true;
             AppTheme = string.IsNullOrWhiteSpace(s.AppTheme) ? "System" : s.AppTheme;
             WarnThreshold = s.WarnThreshold ?? 80;
+            LogLevel = NormalizeLogLevel(s.LogLevel);
 
             _accounts.Clear();
             if (s.Accounts is { Count: > 0 })
@@ -182,6 +186,7 @@ public sealed class SettingsService
         WarnOnHighUsage = true;
         AppTheme = "System";
         WarnThreshold = 80;
+        LogLevel = "Info";
     }
 
     // ===== 账号管理 =====
@@ -267,6 +272,13 @@ public sealed class SettingsService
     }
     public void SetWarnThreshold(int v) { WarnThreshold = Math.Clamp(v, 1, 100); Save(); Changed?.Invoke(); }
 
+    public void SetLogLevel(string? level)
+    {
+        LogLevel = NormalizeLogLevel(level);
+        Save();
+        Changed?.Invoke();
+    }
+
     /// <summary>清理全部数据：所有账号、凭据、偏好与本地缓存（重置为初始状态）。</summary>
     public void ResetAll()
     {
@@ -325,7 +337,20 @@ public sealed class SettingsService
         WarnOnHighUsage = WarnOnHighUsage,
         AppTheme = AppTheme,
         WarnThreshold = WarnThreshold,
+        LogLevel = LogLevel,
     };
+
+    private static string NormalizeLogLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level)) return "Info";
+        return level.Trim() switch
+        {
+            var v when v.Equals("Error", StringComparison.OrdinalIgnoreCase) => "Error",
+            var v when v.Equals("Verbose", StringComparison.OrdinalIgnoreCase) => "Verbose",
+            var v when v.Equals("Debug", StringComparison.OrdinalIgnoreCase) => "Verbose",
+            _ => "Info",
+        };
+    }
 
     // ===== DPAPI 加解密（保留原实现） =====
 

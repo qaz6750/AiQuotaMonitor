@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using AiQuotaMonitor.Helpers;
 using AiQuotaMonitor.Models;
 
 namespace AiQuotaMonitor.Services;
@@ -27,26 +28,35 @@ public sealed class OpenCodeGoClient : IPlatformClient
         var host = NormalizeHost(baseUrl, "https://opencode.ai/zen/go/v1");
         using var doc = await GetJsonAsync($"{host}/models", token);
         var models = EnumerateModels(doc.RootElement).ToList();
-        var usage = TryReadUsage(doc.RootElement);
-
-        var rollingUsed = usage.Rolling ?? 0;
-        var weeklyUsed = usage.Weekly ?? 0;
-        var monthlyUsed = usage.Monthly ?? 0;
-        var level = usage.HasUsage
-            ? $"Go · 5h ${rollingUsed:F2} / ${RollingLimitUsd:F0}"
-            : $"Go · {models.Count} 个模型 · 用量需控制台授权";
-
-        return new UsageResult
+        JsonDocument? usageDoc = null;
+        try
         {
-            Level = level,
-            FiveHour = MoneyQuota("5 小时额度", rollingUsed, RollingLimitUsd, usage.RollingResetMs),
-            Weekly = MoneyQuota("周额度", weeklyUsed, WeeklyLimitUsd, usage.WeeklyResetMs),
-            Mcp = MoneyQuota("月额度", monthlyUsed, MonthlyLimitUsd, usage.MonthlyResetMs, QuotaKind.Mcp),
-            ModelUsage = BuildModelSummary(models, monthlyUsed),
-            TotalDays = 30,
-            ActiveDays = usage.HasUsage ? 1 : 0,
-            FetchedAt = DateTimeOffset.Now,
-        };
+            usageDoc = await TryGetUsageJsonAsync(host, token);
+            var usage = TryReadUsage(usageDoc?.RootElement ?? doc.RootElement);
+
+            var rollingUsed = usage.Rolling ?? 0;
+            var weeklyUsed = usage.Weekly ?? 0;
+            var monthlyUsed = usage.Monthly ?? 0;
+            var level = usage.HasUsage
+                ? $"Go · 月额度 ${monthlyUsed:F2} / ${MonthlyLimitUsd:F0}"
+                : $"Go · {models.Count} 个模型 · 月额度需控制台授权";
+
+            return new UsageResult
+            {
+                Level = level,
+                FiveHour = MoneyQuota("5 小时额度", rollingUsed, RollingLimitUsd, usage.RollingResetMs),
+                Weekly = MoneyQuota("周额度", weeklyUsed, WeeklyLimitUsd, usage.WeeklyResetMs),
+                Mcp = MoneyQuota("月额度", monthlyUsed, MonthlyLimitUsd, usage.MonthlyResetMs, QuotaKind.Mcp),
+                ModelUsage = BuildModelSummary(models, monthlyUsed),
+                TotalDays = 30,
+                ActiveDays = usage.HasUsage ? 1 : 0,
+                FetchedAt = DateTimeOffset.Now,
+            };
+        }
+        finally
+        {
+            usageDoc?.Dispose();
+        }
     }
 
     private static async Task<JsonDocument> GetJsonAsync(string url, string token)
@@ -57,18 +67,46 @@ public sealed class OpenCodeGoClient : IPlatformClient
         req.Headers.TryAddWithoutValidation("User-Agent", "AiQuotaMonitor/1.0");
         using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
         var body = await resp.Content.ReadAsStringAsync();
+        AppLogger.Verbose($"GET {url} -> HTTP {(int)resp.StatusCode}: {BalanceHttp.Truncate(body)}");
         if ((int)resp.StatusCode is 401 or 403) throw new HttpRequestException("OpenCode Go API Key 无效或权限不足。");
         if (resp.StatusCode == HttpStatusCode.NotFound) throw new HttpRequestException("OpenCode Go 模型目录不存在，请确认 Base URL 为 https://opencode.ai/zen/go/v1。");
         if (!resp.IsSuccessStatusCode) throw new HttpRequestException($"OpenCode Go 请求失败 (HTTP {(int)resp.StatusCode})。");
         return JsonDocument.Parse(body);
     }
 
+    private static async Task<JsonDocument?> TryGetUsageJsonAsync(string host, string token)
+    {
+        var root = host.EndsWith("/v1", StringComparison.OrdinalIgnoreCase) ? host[..^3] : host;
+        foreach (var url in new[]
+        {
+            $"{host}/usage",
+            $"{host}/limits",
+            $"{host}/subscription",
+            $"{root}/usage",
+            $"{root}/limits",
+            $"{root}/subscription",
+        }.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var doc = await GetJsonAsync(url, token);
+                if (TryReadUsage(doc.RootElement).HasUsage) return doc;
+                doc.Dispose();
+            }
+            catch (HttpRequestException ex)
+            {
+                AppLogger.Verbose($"OpenCode Go 用量端点不可用 {url}: {ex.Message}");
+            }
+        }
+        return null;
+    }
+
     private static List<ModelUsageSummary> BuildModelSummary(List<JsonElement> models, double monthlyUsed)
     {
         var list = new List<ModelUsageSummary>
         {
-            new() { Model = "Monthly used cents", TotalTokens = (long)Math.Round(monthlyUsed * 100) },
-            new() { Model = "Models available", TotalTokens = models.Count },
+            new() { Model = "月额度已用(美分)", TotalTokens = (long)Math.Round(monthlyUsed * 100) },
+            new() { Model = "可用模型数", TotalTokens = models.Count },
         };
         foreach (var model in models.Take(8))
         {
@@ -89,9 +127,9 @@ public sealed class OpenCodeGoClient : IPlatformClient
     private static (double? Rolling, double? Weekly, double? Monthly, long? RollingResetMs, long? WeeklyResetMs, long? MonthlyResetMs, bool HasUsage) TryReadUsage(JsonElement root)
     {
         var usageRoot = root.TryGetProperty("usage", out var usage) && usage.ValueKind == JsonValueKind.Object ? usage : root;
-        var rolling = ReadMoney(usageRoot, "rollingUsage", "rolling", "fiveHourUsage", "five_hour_usage");
-        var weekly = ReadMoney(usageRoot, "weeklyUsage", "weekly", "weekUsage", "weekly_usage");
-        var monthly = ReadMoney(usageRoot, "monthlyUsage", "monthly", "monthUsage", "monthly_usage");
+        var rolling = ReadMoney(usageRoot, RollingLimitUsd, "rollingUsage", "rolling", "fiveHourUsage", "five_hour_usage", "rollingPercent", "fiveHourPercent");
+        var weekly = ReadMoney(usageRoot, WeeklyLimitUsd, "weeklyUsage", "weekly", "weekUsage", "weekly_usage", "weeklyPercent", "weekPercent");
+        var monthly = ReadMoney(usageRoot, MonthlyLimitUsd, "monthlyUsage", "monthly", "monthUsage", "monthly_usage", "monthlyPercent", "monthPercent", "monthly_usage_percent");
         return (
             rolling,
             weekly,
@@ -117,12 +155,13 @@ public sealed class OpenCodeGoClient : IPlatformClient
         };
     }
 
-    private static double? ReadMoney(JsonElement e, params string[] names)
+    private static double? ReadMoney(JsonElement e, double limit, params string[] names)
     {
         var raw = Num(e, names);
         if (raw is null) return null;
         // OpenCode internally stores usage as micro-cents; plain JSON integrations may already return dollars.
-        return raw > 100_000 ? raw.Value / 100_000_000d : raw.Value;
+        var dollars = raw > 100_000 ? raw.Value / 100_000_000d : raw.Value;
+        return dollars > limit && dollars <= 100 ? limit * dollars / 100 : dollars;
     }
 
     private static long? ReadResetMs(JsonElement e, params string[] names)

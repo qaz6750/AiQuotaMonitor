@@ -17,6 +17,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
     public string SearchText { get => _searchText; set { _searchText = value; OnPropertyChanged(); ApplyFilter(); } }
     public string CountText => $"{FilteredEntries.Count} / {Entries.Count} 行";
     public string LogPathText => AppPaths.LogDirectory;
+    public bool HasNoLogs => FilteredEntries.Count == 0;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -25,6 +26,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
         InitializeComponent();
         DataContext = this;
         LoadLogs();
+        Loaded += (_, _) => LoadLogs();
     }
 
     private void Refresh_Click(object sender, RoutedEventArgs e) => LoadLogs();
@@ -35,7 +37,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
         {
             if (Directory.Exists(AppPaths.LogDirectory))
             {
-                foreach (var file in Directory.GetFiles(AppPaths.LogDirectory, "app-*.log")) File.Delete(file);
+                foreach (var file in Directory.GetFiles(AppPaths.LogDirectory, "*.log")) File.Delete(file);
             }
             Entries.Clear();
             ApplyFilter();
@@ -57,7 +59,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
         {
             if (Directory.Exists(AppPaths.LogDirectory))
             {
-                foreach (var line in Directory.GetFiles(AppPaths.LogDirectory, "app-*.log")
+                foreach (var line in Directory.GetFiles(AppPaths.LogDirectory, "*.log")
                              .OrderByDescending(File.GetLastWriteTime)
                              .Take(3)
                              .SelectMany(ReadTail)
@@ -76,7 +78,14 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
 
     private static IEnumerable<string> ReadTail(string path)
     {
-        try { return File.ReadLines(path).TakeLast(300).ToList(); }
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            var lines = new List<string>();
+            while (reader.ReadLine() is { } line) lines.Add(line);
+            return lines.TakeLast(300).ToList();
+        }
         catch { return Array.Empty<string>(); }
     }
 
@@ -89,6 +98,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
             FilteredEntries.Add(row);
         }
         OnPropertyChanged(nameof(CountText));
+        OnPropertyChanged(nameof(HasNoLogs));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

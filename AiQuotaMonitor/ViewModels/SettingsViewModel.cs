@@ -215,6 +215,7 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>主题选择：0=跟随系统，1=浅色，2=深色。</summary>
     [ObservableProperty] private int _appThemeIndex;
     [ObservableProperty] private int _warnThreshold = 80;
+    [ObservableProperty] private int _logLevelIndex = 1;
 
     public SettingsViewModel()
     {
@@ -226,6 +227,7 @@ public partial class SettingsViewModel : ViewModelBase
         WarnOnHighUsage = _s.WarnOnHighUsage;
         AppThemeIndex = _s.AppTheme switch { "Light" => 1, "Dark" => 2, _ => 0 };
         WarnThreshold = _s.WarnThreshold;
+        LogLevelIndex = _s.LogLevel switch { "Error" => 0, "Verbose" => 2, _ => 1 };
         _s.AccountsChanged += OnAccountsChanged;
     }
 
@@ -362,6 +364,7 @@ public partial class SettingsViewModel : ViewModelBase
         _s.SetWarnOnHighUsage(WarnOnHighUsage);
         _s.SetWarnThreshold(WarnThreshold);
         _s.SetAppTheme(AppThemeIndex switch { 1 => "Light", 2 => "Dark", _ => "System" });
+        _s.SetLogLevel(LogLevelIndex switch { 0 => "Error", 2 => "Verbose", _ => "Info" });
         ApplyThemeToRoot();
         UsageDataService.Instance.StartAutoRefresh();
         SaveMessage = "✓ 偏好已保存";

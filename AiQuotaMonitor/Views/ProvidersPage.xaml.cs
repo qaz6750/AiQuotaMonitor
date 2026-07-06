@@ -5,10 +5,11 @@ using AiQuotaMonitor.Models;
 using AiQuotaMonitor.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace AiQuotaMonitor.Views;
 
-public sealed class ProviderCatalogRow
+public sealed class ProviderRow
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
@@ -17,7 +18,7 @@ public sealed class ProviderCatalogRow
     public string LogoPath { get; set; } = string.Empty;
     public string BrandColor { get; set; } = "#0EA5E9";
     public int AccountCount { get; set; }
-    public string StatusText => AccountCount > 0 ? "Connected" : "Ready";
+    public string StatusText => AccountCount > 0 ? "已接入" : "可接入";
     public string StatusBrush => AccountCount > 0 ? "#22C55E" : "#64748B";
     public string PlanText { get; set; } = string.Empty;
     public string CapabilityText { get; set; } = string.Empty;
@@ -25,7 +26,7 @@ public sealed class ProviderCatalogRow
 
 public sealed partial class ProvidersPage : Page, INotifyPropertyChanged
 {
-    public ObservableCollection<ProviderCatalogRow> Rows { get; } = new();
+    public ObservableCollection<ProviderRow> Rows { get; } = new();
     public string ConnectedText => SettingsService.Instance.Accounts.Count.ToString();
     public string ProviderCountText => Providers.All.Count.ToString();
 
@@ -37,10 +38,18 @@ public sealed partial class ProvidersPage : Page, INotifyPropertyChanged
         DataContext = this;
         LoadRows();
         SettingsService.Instance.AccountsChanged += OnAccountsChanged;
-        Unloaded += (_, _) => SettingsService.Instance.AccountsChanged -= OnAccountsChanged;
+        Loaded += (_, _) => RefreshAll();
     }
 
-    private void OnAccountsChanged()
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        RefreshAll();
+    }
+
+    private void OnAccountsChanged() => RefreshAll();
+
+    private void RefreshAll()
     {
         LoadRows();
         OnPropertyChanged(nameof(ConnectedText));
@@ -54,7 +63,7 @@ public sealed partial class ProvidersPage : Page, INotifyPropertyChanged
         foreach (var p in Providers.All)
         {
             var caps = p.Capabilities;
-            Rows.Add(new ProviderCatalogRow
+            Rows.Add(new ProviderRow
             {
                 Id = p.Id,
                 Name = p.Name,

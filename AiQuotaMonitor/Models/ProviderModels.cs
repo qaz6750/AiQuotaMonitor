@@ -216,11 +216,11 @@ public static class Providers
         Glyph = "C",
         LogoText = "Claude",
         LogoFontSize = 7.5,
-        LogoPath = "ms-appx:///Assets/Logos/claude-code.svg",
+        LogoPath = "ms-appx:///Assets/Logos/anthropic.svg",
         IconGlyph = "\uE90A",
         BrandColor = "#D97757",
         DefaultBaseUrl = "https://api.anthropic.com",
-        DocsUrl = "https://console.anthropic.com/settings/admin-keys",
+        DocsUrl = "https://platform.claude.com/settings/keys",
         SupportedPlan = PlanType.PayAsYouGo,
         Capabilities = new ProviderCapabilities
         {
@@ -258,8 +258,8 @@ public static class Providers
             HasEstimate = false,
             HasMcp = false,
             CredentialLabel = "OpenRouter Management Key",
-            PrimaryQuotaLabel = "Credits Used",
-            SecondaryQuotaLabel = "Monthly Spend",
+            PrimaryQuotaLabel = "可用余额",
+            SecondaryQuotaLabel = "本月消费",
             RingCenterLabel = "OR",
         },
     };
@@ -364,7 +364,7 @@ public static class Providers
             HasTodayUsage = false,
             HasTrend = false,
             HasEstimate = false,
-            HasMcp = false,
+            HasMcp = true,
             HasCost = false,
             CredentialLabel = "OpenCode Go API Key",
             PrimaryQuotaLabel = "5 小时额度",

@@ -100,9 +100,7 @@
                                 </StackPanel>
                             </Grid>
                             <controls:SlimProgressBar Value="{Binding WeeklyPct}" FillBrush="{Binding WeeklyBrush}" TrackHeight="6"/>
-                            <TextBlock FontSize="11" Foreground="{ThemeResource SubtleTextBrush}">
-                                <Run Text="{Binding WeeklyTokensText}"/><Run Text=" / "/><Run Text="{Binding WeeklyCapText}"/><Run Text=" tokens"/>
-                            </TextBlock>
+                            <TextBlock Text="{Binding SecondaryUsageLineText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                         </StackPanel>
 
                         <!-- 双列：花费 / 5h 预估 -->
@@ -169,7 +167,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- ============ MCP 月度 ============ -->
+            <!-- ============ 月度额度 ============ -->
             <Border Style="{StaticResource CardStyle}" Visibility="{Binding HasMcp, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Spacing="14">
                     <Grid>
@@ -177,7 +175,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="MCP 月度用量" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding MonthlyQuotaTitle}" FontSize="15" FontWeight="SemiBold"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <TextBlock Text="{Binding McpPctText}" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding McpResetText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>

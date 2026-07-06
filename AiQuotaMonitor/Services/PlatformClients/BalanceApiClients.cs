@@ -34,9 +34,9 @@ public sealed class OpenRouterClient : IPlatformClient
         return new UsageResult
         {
             Level = $"余额 ${balance:F2}",
-            FiveHour = BalanceHttp.MoneyQuota("OpenRouter 已用", used, total, "USD"),
+            FiveHour = BalanceHttp.MoneyValue("可用余额", balance, "USD", total > 0 ? Math.Clamp(balance / total * 100, 0, 100) : 100),
             Weekly = BalanceHttp.MoneyQuota("本月消费", monthly ?? used, total, "USD"),
-            ModelUsage = BalanceHttp.MoneyModels(("Daily", daily), ("Weekly", weekly), ("Monthly", monthly)),
+            ModelUsage = BalanceHttp.MoneyModels(("日消费", daily), ("周消费", weekly), ("月消费", monthly), ("总额度", total)),
             TotalDays = 30,
             ActiveDays = 0,
             FetchedAt = DateTimeOffset.Now,
@@ -112,9 +112,9 @@ public sealed class MoonshotClient : IPlatformClient
         return new UsageResult
         {
             Level = $"余额 ¥{available:F2}",
-            FiveHour = BalanceHttp.MoneyQuota("Moonshot 可用余额", Math.Max(0, total - available), total, "CNY"),
-            Weekly = BalanceHttp.MoneyQuota("现金余额", cash, total, "CNY"),
-            ModelUsage = BalanceHttp.MoneyModels(("Cash", cash), ("Voucher", voucher)),
+            FiveHour = BalanceHttp.MoneyValue("可用余额", available, "CNY", total > 0 ? Math.Clamp(available / total * 100, 0, 100) : 100),
+            Weekly = BalanceHttp.MoneyValue("现金余额", cash, "CNY"),
+            ModelUsage = BalanceHttp.MoneyModels(("现金余额", cash), ("代金券", voucher), ("总额度", total)),
             TotalDays = 0,
             ActiveDays = 0,
             FetchedAt = DateTimeOffset.Now,
@@ -165,6 +165,7 @@ internal static class BalanceHttp
         req.Headers.TryAddWithoutValidation("User-Agent", "AiQuotaMonitor/1.0");
         using var resp = await http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
         var body = await resp.Content.ReadAsStringAsync();
+        AppLogger.Verbose($"GET {url} -> HTTP {(int)resp.StatusCode}: {BalanceHttp.Truncate(body)}");
         if ((int)resp.StatusCode is 401 or 403) throw new HttpRequestException("凭据无效、已过期或权限不足。");
         if (!resp.IsSuccessStatusCode) throw new HttpRequestException($"请求失败 (HTTP {(int)resp.StatusCode})。");
         return JsonDocument.Parse(body);
@@ -230,6 +231,9 @@ internal static class BalanceHttp
 
     public static List<ModelUsageSummary> MoneyModels(params (string Name, double? Value)[] values)
         => values.Where(v => v.Value is > 0).Select(v => new ModelUsageSummary { Model = v.Name, TotalTokens = (long)Math.Round(v.Value!.Value * 100) }).ToList();
+
+    public static string Truncate(string value, int max = 12000)
+        => value.Length <= max ? value : value[..max] + "...<truncated>";
 
     public static double? DeepNum(JsonElement e, string objectName, string propertyName)
         => e.TryGetProperty(objectName, out var o) && o.ValueKind == JsonValueKind.Object ? Num(o, propertyName) : null;

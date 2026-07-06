@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using AiQuotaMonitor.Helpers;
 using AiQuotaMonitor.Models;
 
 namespace AiQuotaMonitor.Services;
@@ -17,13 +18,24 @@ public sealed class ClaudeClient : IPlatformClient
         if (string.IsNullOrWhiteSpace(token))
             throw new InvalidOperationException("未配置 Anthropic Admin Key。该接口需要组织级 Admin Key。 ");
 
-        var host = NormalizeHost(baseUrl, "https://api.anthropic.com");
+        var host = baseUrl.Contains("platform.claude.com", StringComparison.OrdinalIgnoreCase)
+            ? "https://api.anthropic.com"
+            : NormalizeHost(baseUrl, "https://api.anthropic.com");
         var end = DateTimeOffset.UtcNow.Date.AddDays(1);
         var start = end.AddDays(-7);
         var url = $"{host}/v1/organizations/usage_report/messages?starting_at={start:yyyy-MM-ddTHH:mm:ssZ}&ending_at={end:yyyy-MM-ddTHH:mm:ssZ}&bucket_width=1h&group_by[]=model";
 
-        using var doc = await GetJsonAsync(url, token);
-        return Normalize(doc.RootElement);
+        JsonDocument? balanceDoc = null;
+        try
+        {
+            balanceDoc = await TryGetBalanceJsonAsync(host, baseUrl, token);
+            using var doc = await GetJsonAsync(url, token);
+            return Normalize(doc.RootElement, balanceDoc?.RootElement);
+        }
+        finally
+        {
+            balanceDoc?.Dispose();
+        }
     }
 
     private static async Task<JsonDocument> GetJsonAsync(string url, string token)
@@ -36,6 +48,7 @@ public sealed class ClaudeClient : IPlatformClient
         req.Headers.TryAddWithoutValidation("User-Agent", "AiQuotaMonitor-Claude/1.0");
         using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
         var body = await resp.Content.ReadAsStringAsync();
+        AppLogger.Verbose($"GET {url} -> HTTP {(int)resp.StatusCode}: {BalanceHttp.Truncate(body)}");
         if ((int)resp.StatusCode is 401 or 403)
             throw new HttpRequestException("Anthropic Admin Key 无效、权限不足或未开启 Usage Report API。 ");
         if (!resp.IsSuccessStatusCode)
@@ -43,7 +56,39 @@ public sealed class ClaudeClient : IPlatformClient
         return JsonDocument.Parse(body);
     }
 
-    private static UsageResult Normalize(JsonElement root)
+    private static async Task<JsonDocument?> TryGetBalanceJsonAsync(string apiHost, string configuredBaseUrl, string token)
+    {
+        var platformHost = "https://platform.claude.com";
+        if (!string.IsNullOrWhiteSpace(configuredBaseUrl) && configuredBaseUrl.Contains("platform.claude.com", StringComparison.OrdinalIgnoreCase))
+        {
+            platformHost = NormalizeHost(configuredBaseUrl, platformHost);
+        }
+
+        foreach (var url in new[]
+        {
+            $"{apiHost}/v1/organizations/credits",
+            $"{apiHost}/v1/organizations/billing/credits",
+            $"{apiHost}/v1/organizations/billing/usage",
+            $"{platformHost}/api/organizations/credits",
+            $"{platformHost}/api/organizations/billing",
+            $"{platformHost}/api/organizations/usage",
+        }.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var doc = await GetJsonAsync(url, token);
+                if (ReadBalance(doc.RootElement).Available is not null) return doc;
+                doc.Dispose();
+            }
+            catch (HttpRequestException ex)
+            {
+                AppLogger.Verbose($"Claude 余额端点不可用 {url}: {ex.Message}");
+            }
+        }
+        return null;
+    }
+
+    private static UsageResult Normalize(JsonElement root, JsonElement? balanceRoot)
     {
         var now = DateTimeOffset.Now;
         var byHour = new SortedDictionary<string, Dictionary<string, double>>();
@@ -74,10 +119,13 @@ public sealed class ClaudeClient : IPlatformClient
         var todayTokens = trend.XTime.Select((x, i) => x.StartsWith(todayKey, StringComparison.Ordinal) ? trend.YValue[i] ?? 0 : 0).Sum();
         var costCny = totalCostUsd * CurrencyRates.UsdToCny;
 
+        var balance = balanceRoot is null ? default : ReadBalance(balanceRoot.Value);
         return new UsageResult
         {
-            Level = "Claude API",
-            FiveHour = new QuotaInfo { Kind = QuotaKind.FiveHour, DisplayType = "今日 Tokens", Percentage = 0, CurrentUsage = todayTokens, Total = trend.TotalTokens },
+            Level = balance.Available is double available ? $"Claude API · 余额 ${available:F2}" : "Claude API",
+            FiveHour = balance.Available is double availableBalance
+                ? new QuotaInfo { Kind = QuotaKind.Other, DisplayType = "可用余额", Percentage = balance.Total is > 0 ? Math.Clamp(availableBalance / balance.Total.Value * 100, 0, 100) : 100, CurrentUsage = availableBalance, Total = balance.Total, Remaining = availableBalance }
+                : new QuotaInfo { Kind = QuotaKind.FiveHour, DisplayType = "今日 Tokens", Percentage = 0, CurrentUsage = todayTokens, Total = trend.TotalTokens },
             Weekly = new QuotaInfo { Kind = QuotaKind.Weekly, DisplayType = "近 7 天费用", Percentage = 0, CurrentUsage = costCny, Total = null },
             ModelUsage = perModel.Select(kv => new ModelUsageSummary { Model = kv.Key, TotalTokens = (long)kv.Value }).OrderByDescending(m => m.TotalTokens).ToList(),
             Trend7d = trend,
@@ -127,6 +175,14 @@ public sealed class ClaudeClient : IPlatformClient
 
     private static double? NestedNum(JsonElement e, string objectName, string propertyName)
         => e.TryGetProperty(objectName, out var o) && o.ValueKind == JsonValueKind.Object ? Num(o, propertyName) : null;
+
+    private static (double? Available, double? Total) ReadBalance(JsonElement root)
+    {
+        var data = root.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.Object ? d : root;
+        var available = Num(data, "available", "available_balance", "availableBalance", "remaining", "remaining_balance", "remainingBalance", "balance", "credits_remaining");
+        var total = Num(data, "total", "total_balance", "totalBalance", "credit_limit", "credits_total", "limit");
+        return (available, total);
+    }
 
     private static double? Num(JsonElement e, params string[] names)
     {

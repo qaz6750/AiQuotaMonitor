@@ -18,10 +18,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="4">
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="Providers" FontSize="22" FontWeight="SemiBold"/>
-                        <Border CornerRadius="999" Padding="9,3" Background="{ThemeResource SoftPanelBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1">
-                            <TextBlock Text="Quotio-style catalog" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
-                        </Border>
+                        <TextBlock Text="提供商" FontSize="22" FontWeight="SemiBold"/>
                     </StackPanel>
                     <TextBlock Text="按提供商聚合账号、能力和接入状态。这里用于总览，新增或编辑凭据仍在设置页完成。" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}"/>
                 </StackPanel>

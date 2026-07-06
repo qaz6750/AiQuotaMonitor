@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using AiQuotaMonitor.Services;
 
 namespace AiQuotaMonitor.Helpers;
 
@@ -17,6 +18,10 @@ public static class AppLogger
     public static void Info(string msg, [System.Runtime.CompilerServices.CallerMemberName] string? source = null)
         => Log("INFO", msg, source);
 
+    /// <summary>记录详细诊断信息，仅在 Verbose 日志级别写入。</summary>
+    public static void Verbose(string msg, [System.Runtime.CompilerServices.CallerMemberName] string? source = null)
+        => Log("VERBOSE", msg, source);
+
     /// <summary>记录警告。</summary>
     public static void Warn(string msg, [System.Runtime.CompilerServices.CallerMemberName] string? source = null)
         => Log("WARN", msg, source);
@@ -31,6 +36,7 @@ public static class AppLogger
 
     private static void Log(string level, string msg, string? source)
     {
+        if (!ShouldLog(level)) return;
         var line = $"[{DateTime.Now:HH:mm:ss.fff}] [{level}] [{source ?? "?"}] {msg}";
         Debug.WriteLine(line);
 
@@ -41,10 +47,36 @@ public static class AppLogger
             lock (_lock)
             {
                 _writer?.WriteLine(line);
-                if (level is "ERROR" or "WARN") _writer?.Flush();
+                _writer?.Flush();
             }
         }
         catch { /* 日志本身不应抛出 */ }
+    }
+
+    public static void ClearCurrentLog()
+    {
+        lock (_lock)
+        {
+            try
+            {
+                _writer?.Dispose();
+                _writer = null;
+                _logDate = default;
+                Directory.CreateDirectory(LogDir);
+                foreach (var f in Directory.GetFiles(LogDir, "*.log")) File.Delete(f);
+            }
+            catch { }
+        }
+    }
+
+    private static bool ShouldLog(string level)
+    {
+        string setting;
+        try { setting = SettingsService.Instance.LogLevel; }
+        catch { setting = "Info"; }
+        if (setting.Equals("Verbose", StringComparison.OrdinalIgnoreCase)) return true;
+        if (setting.Equals("Error", StringComparison.OrdinalIgnoreCase)) return level is "ERROR";
+        return level is not "VERBOSE";
     }
 
     private static void EnsureWriter()
@@ -55,7 +87,7 @@ public static class AppLogger
         _writer?.Dispose();
         Directory.CreateDirectory(LogDir);
         var path = Path.Combine(LogDir, $"app-{today:yyyy-MM-dd}.log");
-        _writer = new StreamWriter(path, append: true) { AutoFlush = false };
+        _writer = new StreamWriter(path, append: true) { AutoFlush = true };
         _logDate = today;
 
         // 清理 7 天前的日志

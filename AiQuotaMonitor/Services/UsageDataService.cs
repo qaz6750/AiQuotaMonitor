@@ -116,6 +116,7 @@ public sealed class UsageDataService
 
         try
         {
+            if (force) AppLogger.ClearCurrentLog();
             AppLogger.Info($"刷新账号: {acc.Provider.Name} ({acc.Id[..6]})");
             // 按平台分发：GLM 用 GlmClient，MiMo 用 MiMoClient
             var client = PlatformClientFactory.Get(acc);

@@ -102,6 +102,7 @@ public partial class OverviewViewModel : ViewModelBase
             OnPropertyChanged(nameof(HasTodayUsage));
             OnPropertyChanged(nameof(HasResetTime));
             OnPropertyChanged(nameof(HasMcp));
+            OnPropertyChanged(nameof(MonthlyQuotaTitle));
             OnPropertyChanged(nameof(HasCost));
             OnPropertyChanged(nameof(HasTrend));
             OnPropertyChanged(nameof(RingCenterLabel));
@@ -144,6 +145,9 @@ public partial class OverviewViewModel : ViewModelBase
     public bool HasTodayUsage => Caps.HasTodayUsage;
     public bool HasResetTime => Caps.HasResetTime;
     public bool HasMcp => _data.Current?.Mcp is not null && Caps.HasMcp;
+    public string MonthlyQuotaTitle => _settings.ActiveAccount?.ProviderId.Equals("opencode-go", StringComparison.OrdinalIgnoreCase) == true
+        ? "月额度"
+        : "MCP 月度用量";
     public bool HasCost => Caps.HasCost;
     public bool HasTrend => Caps.HasTrend;
     private bool IsCookieProvider => Caps.IsCookieAuth;
@@ -162,6 +166,7 @@ public partial class OverviewViewModel : ViewModelBase
     [ObservableProperty] private SolidColorBrush _weeklyBrush = new(Windows.UI.Color.FromArgb(255, 0x3F, 0xB9, 0x50));
     [ObservableProperty] private string _weeklyTokensText = "—";
     [ObservableProperty] private string _weeklyCapText = "—";
+    [ObservableProperty] private string _secondaryUsageLineText = "—";
     [ObservableProperty] private string? _weeklyEstimateText;
 
     // ===== MCP 月度 =====
@@ -331,7 +336,8 @@ public partial class OverviewViewModel : ViewModelBase
         item.WeeklyPct = result.Weekly?.Percentage ?? 0;
         item.SecondaryUsed = (long)(result.Weekly?.CurrentUsage ?? 0);
         item.SecondaryLimit = (long)(result.Weekly?.Total ?? 0);
-        item.EstimatedCostCny = (account.PlanType == PlanType.PayAsYouGo && result.Weekly?.CurrentUsage is double c && c > 0)
+        var isBalanceProvider = account.ProviderId is "deepseek" or "openrouter" or "moonshot";
+        item.EstimatedCostCny = (!isBalanceProvider && account.PlanType == PlanType.PayAsYouGo && result.Weekly?.CurrentUsage is double c && c > 0)
             ? c
             : CostCalculator.EstimateFromTrend(result.Trend7d)?.TotalCny ?? 0;
 
@@ -347,26 +353,41 @@ public partial class OverviewViewModel : ViewModelBase
             item.UsageDensityOverride = granted > 0
                 ? $"查询余额 · 赠金 {FormatMoney(granted, "CNY")} · {result.Level ?? "DeepSeek"}"
                 : $"查询余额 · {result.Level ?? "DeepSeek 余额"}";
-            item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
-            item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor(item.FiveHourPct > 0 ? "#3FB950" : "#F0883E"));
+            item.FiveHourPct = result.FiveHour?.Percentage ?? 100;
+            item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor(available > 0 ? "#3FB950" : "#F0883E"));
+            item.EstimatedCostCny = 0;
             return;
         }
 
         if (account.ProviderId is "openrouter" or "moonshot")
         {
             var currency = account.ProviderId == "moonshot" ? "CNY" : "USD";
-            item.PrimaryDisplayOverride = FormatMoney(result.FiveHour?.Remaining ?? result.FiveHour?.CurrentUsage ?? 0, currency);
+            item.PrimaryDisplayOverride = FormatMoney(result.FiveHour?.CurrentUsage ?? result.FiveHour?.Remaining ?? 0, currency);
             item.PrimaryLabelOverride = "可用余额";
             item.SecondaryDisplayOverride = FormatMoney(result.Weekly?.CurrentUsage ?? 0, currency);
             item.SecondaryLabelOverride = account.ProviderId == "moonshot" ? "现金余额" : "本月消费";
             var voucher = account.ProviderId == "moonshot"
-                ? result.ModelUsage.FirstOrDefault(m => m.Model == "Voucher")?.TotalTokens / 100.0
+                ? result.ModelUsage.FirstOrDefault(m => m.Model == "代金券")?.TotalTokens / 100.0
                 : null;
             item.UsageDensityOverride = voucher is > 0
                 ? $"查询余额 · 代金券 {FormatMoney(voucher.Value, currency)} · {result.Level ?? account.Provider.Name}"
                 : $"查询余额 · {result.Level ?? account.Provider.Name}";
-            item.FiveHourPct = result.FiveHour?.Percentage ?? 0;
-            item.BarBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(item.FiveHourPct));
+            item.FiveHourPct = result.FiveHour?.Percentage ?? 100;
+            item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor((result.FiveHour?.CurrentUsage ?? 0) > 0 ? "#3FB950" : "#F0883E"));
+            item.EstimatedCostCny = 0;
+            return;
+        }
+
+        if (account.ProviderId == "claude" && result.FiveHour?.DisplayType.Contains("余额", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var available = result.FiveHour.CurrentUsage ?? 0;
+            item.PrimaryDisplayOverride = FormatMoney(available, "USD");
+            item.PrimaryLabelOverride = "可用余额";
+            item.SecondaryDisplayOverride = Formatters.FormatCost(result.Weekly?.CurrentUsage ?? 0);
+            item.SecondaryLabelOverride = "近 7 天费用";
+            item.UsageDensityOverride = result.Level ?? "Claude API";
+            item.FiveHourPct = result.FiveHour.Percentage;
+            item.BarBrush = ColorHelper.ToBrush(ColorHelper.ToColor(available > 0 ? "#3FB950" : "#F0883E"));
             return;
         }
 
@@ -624,14 +645,20 @@ public partial class OverviewViewModel : ViewModelBase
         TopModelText = BuildTopModelText(r);
         PeakUsageText = BuildPeakUsageText(r.Trend7d);
         ToolInsightText = BuildToolInsightText(r);
+        WeeklyTokensText = "—";
+        WeeklyCapText = "—";
+        SecondaryUsageLineText = "—";
 
         // 5h（Token Plan 用作"套餐进度"，无重置时间）
-        if (r.FiveHour is { } q5)
+        var q5Info = r.FiveHour;
+        if (q5Info is { } q5)
         {
             FiveHourPct = q5.Percentage;
             FiveHourPctText = Formatters.FormatPercent(q5.Percentage);
             FiveHourResetText = q5.NextResetTimeMs is null ? "—" : Formatters.FormatResetTime(q5.NextResetTimeMs, q5.DisplayType);
-            FiveHourBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(q5.Percentage));
+            FiveHourBrush = q5.DisplayType.Contains("余额", StringComparison.OrdinalIgnoreCase)
+                ? ColorHelper.ToBrush(ColorHelper.ToColor((q5.CurrentUsage ?? q5.Remaining ?? 0) > 0 ? "#3FB950" : "#F0883E"))
+                : ColorHelper.ToBrush(ColorHelper.GetQuotaColor(q5.Percentage));
             FiveHourEstimateText = q5.NextResetTimeMs is null ? null
                 : (UsageEstimator.For5Hour(q5.Percentage, q5.NextResetTimeMs) is { } est
                    ? $"窗口末预计 {Formatters.FormatPercent(est.ProjectedPercentage)} · 约 {est.TimeToExhaust}耗尽"
@@ -651,6 +678,7 @@ public partial class OverviewViewModel : ViewModelBase
             {
                 WeeklyTokensText = Formatters.FormatTokens((long)(qw.CurrentUsage ?? 0));
                 WeeklyCapText = Formatters.FormatTokens((long)qw.Total);
+                SecondaryUsageLineText = $"{WeeklyTokensText} / {WeeklyCapText} tokens";
             }
             else
             {
@@ -660,7 +688,16 @@ public partial class OverviewViewModel : ViewModelBase
                     var used = plan.TokensWeekly * qw.Percentage / 100.0;
                     WeeklyTokensText = Formatters.FormatTokens((long)used);
                     WeeklyCapText = Formatters.FormatTokens(plan.TokensWeekly);
+                    SecondaryUsageLineText = $"{WeeklyTokensText} / {WeeklyCapText} tokens";
                 }
+            }
+
+            if (acc?.ProviderId is "deepseek" or "moonshot" or "openrouter" || q5Info?.DisplayType.Contains("余额", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var currency = acc?.ProviderId is "openrouter" or "claude" ? "USD" : "CNY";
+                var primary = q5Info is null ? null : FormatMoney(q5Info.CurrentUsage ?? q5Info.Remaining ?? 0, currency);
+                var secondary = FormatMoney(qw.CurrentUsage ?? 0, currency);
+                SecondaryUsageLineText = primary is null ? secondary : $"{PrimaryQuotaLabel} {primary} · {SecondaryQuotaLabel} {secondary}";
             }
 
             WeeklyEstimateText = qw.NextResetTimeMs is null ? null
@@ -678,14 +715,32 @@ public partial class OverviewViewModel : ViewModelBase
             McpBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(qm.Percentage));
             if (qm.Total is double total)
             {
-                McpTotalText = total.ToString("F0");
-                McpUsageText = (qm.CurrentUsage ?? 0).ToString("F0");
-                McpRemainingText = (qm.Remaining ?? (total - (qm.CurrentUsage ?? 0))).ToString("F0");
+                if (acc?.ProviderId.Equals("opencode-go", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    McpTotalText = $"${total:F0}";
+                    McpUsageText = $"${qm.CurrentUsage ?? 0:F2}";
+                    McpRemainingText = $"${qm.Remaining ?? (total - (qm.CurrentUsage ?? 0)):F2}";
+                }
+                else
+                {
+                    McpTotalText = total.ToString("F0");
+                    McpUsageText = (qm.CurrentUsage ?? 0).ToString("F0");
+                    McpRemainingText = (qm.Remaining ?? (total - (qm.CurrentUsage ?? 0))).ToString("F0");
+                }
             }
         }
 
+        var isBalanceProvider = acc?.ProviderId is "deepseek" or "openrouter" or "moonshot";
+        if (isBalanceProvider)
+        {
+            CostText = "—";
+            CostWindowLabel = "余额查询";
+            CostHasFallback = false;
+            CostBreakdownText = "余额类接口不折算为等价 API 花费。";
+            CostFormulaText = "余额数据直接来自平台余额接口。";
+        }
         // 等价花费（优先近 7 天趋势，其次今日模型汇总）
-        if (IsPayAsYouGoPlan && r.Weekly?.CurrentUsage is double officialCost && officialCost > 0)
+        else if (IsPayAsYouGoPlan && r.Weekly?.CurrentUsage is double officialCost && officialCost > 0)
         {
             CostText = Formatters.FormatCost(officialCost);
             CostWindowLabel = "近 7 天官方费用";
