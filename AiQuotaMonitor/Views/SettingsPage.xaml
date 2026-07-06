@@ -260,6 +260,7 @@
                             <StackPanel Spacing="3">
                                 <TextBlock Text="版本" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                                 <TextBlock Text="{Binding VersionText}" FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding UpdateStatusText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                         <Border Grid.Column="1" CornerRadius="14" Padding="14" Background="{ThemeResource SoftPanelBackgroundBrush}">
@@ -283,6 +284,19 @@
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Command="{Binding CheckUpdateCommand}" Padding="16,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ProgressRing Width="14" Height="14" IsActive="{Binding IsCheckingUpdate}" Visibility="{Binding IsCheckingUpdate, Converter={StaticResource BoolToVisibility}}"/>
+                                <FontIcon Glyph="&#xE895;" FontSize="13"/>
+                                <TextBlock Text="检测更新" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding OpenReleasesCommand}" Padding="16,8" Background="Transparent" BorderBrush="{ThemeResource CardBorderBrush}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8A7;" FontSize="13"/>
+                                <TextBlock Text="打开 Releases" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
                         <Button Command="{Binding ResetAllCommand}" Padding="16,8">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE74D;" FontSize="13"/>

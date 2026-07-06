@@ -57,6 +57,10 @@ public partial class SettingsViewModel : ViewModelBase
     public string AccountStatsText => Accounts.Count == 0
         ? "尚未保存账号"
         : $"{Accounts.Count} 个账号 · {Accounts.Select(a => a.ProviderName).Distinct().Count()} 个提供商";
+    [ObservableProperty] private string _updateStatusText = "尚未检测更新";
+    [ObservableProperty] private bool _isCheckingUpdate;
+    [ObservableProperty] private bool _hasUpdate;
+    private string? _latestReleaseUrl;
 
     // ===== 编辑表单 =====
     [ObservableProperty] private string _editingName = "";
@@ -388,6 +392,38 @@ public partial class SettingsViewModel : ViewModelBase
         UsageDataService.Instance.StopAutoRefresh();
         UsageDataService.Instance.Clear();
         App.MainWindowNavigate(typeof(WelcomePage));
+    }
+
+    [RelayCommand]
+    private async Task CheckUpdateAsync()
+    {
+        IsCheckingUpdate = true;
+        try
+        {
+            var result = await UpdateService.Instance.CheckAsync();
+            HasUpdate = result.HasUpdate;
+            _latestReleaseUrl = result.ReleaseUrl;
+            UpdateStatusText = result.Message;
+            SaveMessage = result.HasUpdate ? "发现新版本，可前往 Releases 下载。" : "当前已是最新版本。";
+        }
+        catch (Exception ex)
+        {
+            HasUpdate = false;
+            UpdateStatusText = "检测失败：" + ex.Message;
+            SaveMessage = UpdateStatusText;
+            AppLogger.Error("检测更新失败", ex);
+        }
+        finally
+        {
+            IsCheckingUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenReleases()
+    {
+        try { UpdateService.Instance.OpenReleases(_latestReleaseUrl); }
+        catch (Exception ex) { SaveMessage = "无法打开 Releases：" + ex.Message; }
     }
 
     [RelayCommand]
