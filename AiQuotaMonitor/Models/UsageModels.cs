@@ -33,7 +33,7 @@ public sealed class QuotaInfo
     /// <summary>剩余额度。</summary>
     public double? Remaining { get; init; }
 
-    /// <summary>MCP 月度明细。</summary>
+    /// <summary>月度额度明细（GLM MCP 等平台使用）。</summary>
     public List<McpUsageDetail>? UsageDetails { get; init; }
 }
 

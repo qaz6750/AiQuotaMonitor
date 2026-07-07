@@ -90,9 +90,13 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             using var reader = new StreamReader(stream);
-            var lines = new List<string>();
-            while (reader.ReadLine() is { } line) lines.Add(line);
-            return lines.TakeLast(300).ToList();
+            var lines = new Queue<string>(300);
+            while (reader.ReadLine() is { } line)
+            {
+                if (lines.Count == 300) lines.Dequeue();
+                lines.Enqueue(line);
+            }
+            return lines.ToList();
         }
         catch { return Array.Empty<string>(); }
     }

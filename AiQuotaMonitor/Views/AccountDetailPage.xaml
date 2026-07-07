@@ -168,7 +168,7 @@
             </Border>
 
             <!-- ============ 月度额度 ============ -->
-            <Border Style="{StaticResource CardStyle}" Visibility="{Binding HasMcp, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource CardStyle}" Visibility="{Binding HasMonthlyQuota, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Spacing="14">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -177,11 +177,11 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding MonthlyQuotaTitle}" FontSize="15" FontWeight="SemiBold"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding McpPctText}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding McpResetText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding MonthlyPctText}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MonthlyResetText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                         </StackPanel>
                     </Grid>
-                    <controls:SlimProgressBar Value="{Binding McpPct}" FillBrush="{Binding McpBrush}" TrackHeight="6"/>
+                    <controls:SlimProgressBar Value="{Binding MonthlyPct}" FillBrush="{Binding MonthlyBrush}" TrackHeight="6"/>
                     <Grid ColumnSpacing="20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -190,15 +190,15 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="2">
                             <TextBlock Text="已用" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
-                            <TextBlock Text="{Binding McpUsageText}" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MonthlyUsageText}" FontSize="16" FontWeight="SemiBold"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="2">
                             <TextBlock Text="总额度" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
-                            <TextBlock Text="{Binding McpTotalText}" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MonthlyTotalText}" FontSize="16" FontWeight="SemiBold"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="2">
                             <TextBlock Text="剩余" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
-                            <TextBlock Text="{Binding McpRemainingText}" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MonthlyRemainingText}" FontSize="16" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

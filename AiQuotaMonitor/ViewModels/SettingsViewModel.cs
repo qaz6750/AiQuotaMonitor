@@ -289,7 +289,11 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void CancelEdit() => IsEditing = false;
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        EditingApiKey = string.Empty;
+    }
 
     [RelayCommand]
     private async Task SaveAccountAsync()
@@ -321,6 +325,7 @@ public partial class SettingsViewModel : ViewModelBase
             UsageDataService.Instance.StartAutoRefresh();
             await UsageDataService.Instance.RefreshAsync(force: true);
             IsEditing = false;
+            EditingApiKey = string.Empty;
         }
         finally
         {

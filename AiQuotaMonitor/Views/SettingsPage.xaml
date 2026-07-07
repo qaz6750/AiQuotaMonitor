@@ -98,8 +98,10 @@
                                     <TextBlock Text="{Binding CredentialLabel}" FontSize="12" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center"/>
                                     <Button Command="{Binding FetchCredentialCommand}" Content="一键获取" Padding="10,3" FontSize="11" Visibility="{Binding CanAutoFetchCredential, Converter={StaticResource BoolToVisibility}}"/>
                                 </StackPanel>
-                                <PasswordBox Password="{Binding EditingApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按所选提供商填写 API Key、Admin Key、Subscription Key、Bearer Token 或 Cookie"/>
-                                <TextBlock Text="{Binding CredentialHelpText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap"/>
+                                <PasswordBox x:Name="CredentialBox" PlaceholderText="按所选提供商填写 API Key、Admin Key、Subscription Key、Bearer Token 或 Cookie"/>
+                                <TextBlock FontSize="11" Foreground="{ThemeResource SubtleTextBrush}" TextWrapping="Wrap">
+                                    <Run Text="{Binding CredentialHelpText}"/><Run Text=" 仅在点击保存时读取输入框内容，不进行实时绑定。"/>
+                                </TextBlock>
                             </StackPanel>
 
                             <StackPanel Spacing="4" Visibility="{Binding ShowBaseUrl, Converter={StaticResource BoolToVisibility}}">
@@ -108,7 +110,7 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Button Command="{Binding SaveAccountCommand}" Style="{StaticResource AccentButtonStyle}" Padding="16,8">
+                                <Button Click="SaveAccount_Click" Style="{StaticResource AccentButtonStyle}" Padding="16,8">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <ProgressRing Width="14" Height="14" IsActive="{Binding IsTesting}" Visibility="{Binding IsTesting, Converter={StaticResource BoolToVisibility}}"/>
                                         <TextBlock Text="保存" FontSize="12"/>

@@ -101,7 +101,7 @@ public partial class OverviewViewModel : ViewModelBase
             OnPropertyChanged(nameof(Caps));
             OnPropertyChanged(nameof(HasTodayUsage));
             OnPropertyChanged(nameof(HasResetTime));
-            OnPropertyChanged(nameof(HasMcp));
+            OnPropertyChanged(nameof(HasMonthlyQuota));
             OnPropertyChanged(nameof(MonthlyQuotaTitle));
             OnPropertyChanged(nameof(HasCost));
             OnPropertyChanged(nameof(HasTrend));
@@ -145,7 +145,7 @@ public partial class OverviewViewModel : ViewModelBase
     public bool HasTodayUsage => Caps.HasTodayUsage;
     public bool HasResetTime => Caps.HasResetTime;
     private QuotaInfo? CurrentMonthlyQuota => _data.Current?.Monthly ?? _data.Current?.Mcp;
-    public bool HasMcp => CurrentMonthlyQuota is not null && (Caps.HasMcp || Caps.HasMonthlyQuota);
+    public bool HasMonthlyQuota => CurrentMonthlyQuota is not null && (Caps.HasMcp || Caps.HasMonthlyQuota);
     public string MonthlyQuotaTitle => Caps.MonthlyQuotaLabel;
     public bool HasCost => Caps.HasCost;
     public bool HasTrend => Caps.HasTrend;
@@ -168,14 +168,14 @@ public partial class OverviewViewModel : ViewModelBase
     [ObservableProperty] private string _secondaryUsageLineText = "—";
     [ObservableProperty] private string? _weeklyEstimateText;
 
-    // ===== MCP 月度 =====
-    [ObservableProperty] private double _mcpPct;
-    [ObservableProperty] private string _mcpPctText = "—";
-    [ObservableProperty] private string _mcpUsageText = "—";
-    [ObservableProperty] private string _mcpTotalText = "—";
-    [ObservableProperty] private string _mcpRemainingText = "—";
-    [ObservableProperty] private string _mcpResetText = "N/A";
-    [ObservableProperty] private SolidColorBrush _mcpBrush = new(Windows.UI.Color.FromArgb(255, 0x9C, 0xA3, 0xAF));
+    // ===== 月度额度 =====
+    [ObservableProperty] private double _monthlyPct;
+    [ObservableProperty] private string _monthlyPctText = "—";
+    [ObservableProperty] private string _monthlyUsageText = "—";
+    [ObservableProperty] private string _monthlyTotalText = "—";
+    [ObservableProperty] private string _monthlyRemainingText = "—";
+    [ObservableProperty] private string _monthlyResetText = "N/A";
+    [ObservableProperty] private SolidColorBrush _monthlyBrush = new(Windows.UI.Color.FromArgb(255, 0x9C, 0xA3, 0xAF));
 
     // ===== 等价花费 =====
     [ObservableProperty] private string _costText = "—";
@@ -709,23 +709,23 @@ public partial class OverviewViewModel : ViewModelBase
         // mcp
         if ((r.Monthly ?? r.Mcp) is { } qm)
         {
-            McpPct = qm.Percentage;
-            McpPctText = Formatters.FormatPercent(qm.Percentage);
-            McpResetText = Formatters.FormatResetTime(qm.NextResetTimeMs, qm.DisplayType);
-            McpBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(qm.Percentage));
+            MonthlyPct = qm.Percentage;
+            MonthlyPctText = Formatters.FormatPercent(qm.Percentage);
+            MonthlyResetText = Formatters.FormatResetTime(qm.NextResetTimeMs, qm.DisplayType);
+            MonthlyBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(qm.Percentage));
             if (qm.Total is double total)
             {
                 if (acc?.ProviderId.Equals("opencode-go", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    McpTotalText = $"${total:F0}";
-                    McpUsageText = $"${qm.CurrentUsage ?? 0:F2}";
-                    McpRemainingText = $"${qm.Remaining ?? (total - (qm.CurrentUsage ?? 0)):F2}";
+                    MonthlyTotalText = $"${total:F0}";
+                    MonthlyUsageText = $"${qm.CurrentUsage ?? 0:F2}";
+                    MonthlyRemainingText = $"${qm.Remaining ?? (total - (qm.CurrentUsage ?? 0)):F2}";
                 }
                 else
                 {
-                    McpTotalText = total.ToString("F0");
-                    McpUsageText = (qm.CurrentUsage ?? 0).ToString("F0");
-                    McpRemainingText = (qm.Remaining ?? (total - (qm.CurrentUsage ?? 0))).ToString("F0");
+                    MonthlyTotalText = total.ToString("F0");
+                    MonthlyUsageText = (qm.CurrentUsage ?? 0).ToString("F0");
+                    MonthlyRemainingText = (qm.Remaining ?? (total - (qm.CurrentUsage ?? 0))).ToString("F0");
                 }
             }
         }
@@ -781,7 +781,7 @@ public partial class OverviewViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActivePlanType));
         OnPropertyChanged(nameof(IsTokenPlan));
         OnPropertyChanged(nameof(IsPayAsYouGoPlan));
-        OnPropertyChanged(nameof(HasMcp));
+        OnPropertyChanged(nameof(HasMonthlyQuota));
         OnPropertyChanged(nameof(MonthlyQuotaTitle));
         OnPropertyChanged(nameof(OverviewSubtitle));
     }
