@@ -17,6 +17,7 @@ public sealed class UsageDataService
     private SemaphoreSlim? _refreshLock;
     private bool _refreshing;
     private bool _refreshPending;
+    private bool _refreshPendingForce;
     private static readonly TimeSpan MinRefreshGap = TimeSpan.FromSeconds(60);
 
     public UsageResult? Current { get; private set; }
@@ -48,6 +49,7 @@ public sealed class UsageDataService
     public async Task RefreshAsync(bool force = false)
     {
         var rerun = true;
+        var runForce = force;
         while (rerun)
         {
             rerun = false;
@@ -59,16 +61,18 @@ public sealed class UsageDataService
                 if (_refreshing)
                 {
                     _refreshPending = true;
+                    _refreshPendingForce |= force;
                     return;
                 }
                 _refreshing = true;
                 _refreshPending = false;
+                _refreshPendingForce = false;
             }
             finally { _refreshLock.Release(); }
 
             try
             {
-                await RefreshCoreAsync(force);
+                await RefreshCoreAsync(runForce);
             }
             finally
             {
@@ -77,7 +81,12 @@ public sealed class UsageDataService
                 {
                     _refreshing = false;
                     rerun = _refreshPending;
-                    if (rerun) _refreshPending = false;
+                    if (rerun)
+                    {
+                        runForce = _refreshPendingForce;
+                        _refreshPending = false;
+                        _refreshPendingForce = false;
+                    }
                 }
                 finally { _refreshLock.Release(); }
             }

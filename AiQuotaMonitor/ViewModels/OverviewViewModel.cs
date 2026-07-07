@@ -635,6 +635,7 @@ public partial class OverviewViewModel : ViewModelBase
 
         if (r is null)
         {
+            ResetDisplayState();
             return;
         }
 
@@ -783,6 +784,60 @@ public partial class OverviewViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsPayAsYouGoPlan));
         OnPropertyChanged(nameof(HasMonthlyQuota));
         OnPropertyChanged(nameof(MonthlyQuotaTitle));
+        OnPropertyChanged(nameof(OverviewSubtitle));
+    }
+
+    private void ResetDisplayState()
+    {
+        LevelText = "—";
+        ServiceName = _settings.ActiveAccount?.Provider.Name ?? "AI 服务用量";
+        ProviderInsightText = _settings.HasAccounts ? "等待刷新后展示提供商摘要" : "0/0 个账号已同步";
+        TopModelText = "模型明细待刷新";
+        PeakUsageText = "峰值时段待刷新";
+        ToolInsightText = "工具调用待刷新";
+
+        FiveHourPct = 0;
+        FiveHourPctText = "—";
+        FiveHourResetText = "N/A";
+        FiveHourEstimateText = null;
+        FiveHourBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(0));
+
+        WeeklyPct = 0;
+        WeeklyPctText = "—";
+        WeeklyResetText = "N/A";
+        WeeklyTokensText = "—";
+        WeeklyCapText = "—";
+        SecondaryUsageLineText = "—";
+        WeeklyEstimateText = null;
+        WeeklyBrush = ColorHelper.ToBrush(ColorHelper.GetQuotaColor(0));
+
+        MonthlyPct = 0;
+        MonthlyPctText = "—";
+        MonthlyUsageText = "—";
+        MonthlyTotalText = "—";
+        MonthlyRemainingText = "—";
+        MonthlyResetText = "N/A";
+        MonthlyBrush = ColorHelper.ToBrush(ColorHelper.ToColor("#9CA3AF"));
+
+        CostText = "—";
+        CostWindowLabel = "";
+        CostHasFallback = false;
+        CostBreakdownText = "等待用量数据";
+        CostFormulaText = "按模型 token × 单价估算，OpenAI/Claude 使用官方费用优先。";
+
+        TodayTokensText = "—";
+        TodayCallsText = "—";
+        ActiveDaysText = "—";
+        TrendToday = null;
+        Trend7d = null;
+        Trend30d = null;
+        CustomRangeTrend = null;
+        CustomRangeResult = "—";
+        HourRangeResult = "—";
+
+        OnPropertyChanged(nameof(CurrentTrend));
+        OnPropertyChanged(nameof(CurrentTrendLabel));
+        OnPropertyChanged(nameof(HasMonthlyQuota));
         OnPropertyChanged(nameof(OverviewSubtitle));
     }
 

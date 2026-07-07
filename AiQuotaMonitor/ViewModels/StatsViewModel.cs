@@ -108,7 +108,7 @@ public partial class StatsViewModel : ViewModelBase
     public void ApplyBarToRangeStart(int idx)
     {
         // 仅当用户已操作过起始日期（非默认值）时才允许点柱更新，避免误触
-        if (RangeStart.Date != DateTimeOffset.Now.AddDays(-6).Date) return;
+        if (RangeStart.Date == DateTimeOffset.Now.AddDays(-6).Date) return;
         if (Trend?.XTime is null || idx < 0 || idx >= Trend.XTime.Count) return;
         if (DateTime.TryParse(Trend.XTime[idx], out var d))
         {
