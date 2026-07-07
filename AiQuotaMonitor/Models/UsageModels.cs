@@ -5,6 +5,7 @@ public enum QuotaKind
 {
     FiveHour,
     Weekly,
+    Monthly,
     Mcp,
     Other,
 }
@@ -23,13 +24,13 @@ public sealed class QuotaInfo
     /// <summary>下次重置时间（Unix 毫秒），可空。</summary>
     public long? NextResetTimeMs { get; init; }
 
-    /// <summary>MCP 月度当前用量。</summary>
+    /// <summary>当前用量或余额值。</summary>
     public double? CurrentUsage { get; init; }
 
-    /// <summary>MCP 月度总额度。</summary>
+    /// <summary>总额度。</summary>
     public double? Total { get; init; }
 
-    /// <summary>MCP 月度剩余。</summary>
+    /// <summary>剩余额度。</summary>
     public double? Remaining { get; init; }
 
     /// <summary>MCP 月度明细。</summary>
@@ -84,6 +85,7 @@ public sealed class UsageResult
 {
     public QuotaInfo? FiveHour { get; init; }
     public QuotaInfo? Weekly { get; init; }
+    public QuotaInfo? Monthly { get; init; }
     public QuotaInfo? Mcp { get; init; }
     public string? Level { get; init; }
 

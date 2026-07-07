@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using AiQuotaMonitor.Services;
 
 namespace AiQuotaMonitor.Helpers;
@@ -11,8 +12,13 @@ public static class AppLogger
 {
     private static readonly string LogDir = AppPaths.LogDirectory;
     private static readonly object _lock = new();
+    private static readonly Regex SensitiveJsonRegex = new(
+        "(?i)(\\\"(?:api[_-]?key|key|token|access[_-]?token|authorization|email|organization[_-]?id|org[_-]?id)\\\"\\s*:\\s*)\\\"[^\\\"]*\\\"",
+        RegexOptions.Compiled);
+    private static readonly Regex SensitiveHeaderRegex = new(
+        "(?i)\\b(api[_-]?key|key|token|access[_-]?token|authorization|email|organization[_-]?id|org[_-]?id)=([^&\\s;]+)",
+        RegexOptions.Compiled);
     private static StreamWriter? _writer;
-    private static DateTime _logDate;
 
     /// <summary>记录信息。</summary>
     public static void Info(string msg, [System.Runtime.CompilerServices.CallerMemberName] string? source = null)
@@ -37,7 +43,7 @@ public static class AppLogger
     private static void Log(string level, string msg, string? source)
     {
         if (!ShouldLog(level)) return;
-        var line = $"[{DateTime.Now:HH:mm:ss.fff}] [{level}] [{source ?? "?"}] {msg}";
+        var line = $"[{DateTime.Now:HH:mm:ss.fff}] [{level}] [{source ?? "?"}] {Redact(msg)}";
         Debug.WriteLine(line);
 
         // 文件日志（每天一个文件）
@@ -53,7 +59,7 @@ public static class AppLogger
         catch { /* 日志本身不应抛出 */ }
     }
 
-    public static void ClearCurrentLog()
+    public static void StartNewSessionLog()
     {
         lock (_lock)
         {
@@ -61,7 +67,24 @@ public static class AppLogger
             {
                 _writer?.Dispose();
                 _writer = null;
-                _logDate = default;
+                Directory.CreateDirectory(LogDir);
+                var current = Path.Combine(LogDir, "app-current.log");
+                var previous = Path.Combine(LogDir, "app-previous.log");
+                if (File.Exists(previous)) File.Delete(previous);
+                if (File.Exists(current)) File.Move(current, previous);
+            }
+            catch { }
+        }
+    }
+
+    public static void ClearAllLogs()
+    {
+        lock (_lock)
+        {
+            try
+            {
+                _writer?.Dispose();
+                _writer = null;
                 Directory.CreateDirectory(LogDir);
                 foreach (var f in Directory.GetFiles(LogDir, "*.log")) File.Delete(f);
             }
@@ -81,24 +104,29 @@ public static class AppLogger
 
     private static void EnsureWriter()
     {
-        var today = DateTime.Now.Date;
-        if (_writer is not null && today == _logDate) return;
+        if (_writer is not null) return;
 
         _writer?.Dispose();
         Directory.CreateDirectory(LogDir);
-        var path = Path.Combine(LogDir, $"app-{today:yyyy-MM-dd}.log");
+        var path = Path.Combine(LogDir, "app-current.log");
         _writer = new StreamWriter(path, append: true) { AutoFlush = true };
-        _logDate = today;
 
         // 清理 7 天前的日志
         try
         {
-            foreach (var f in Directory.GetFiles(LogDir, "app-*.log"))
+            foreach (var f in Directory.GetFiles(LogDir, "*.log"))
             {
-                if (File.GetLastWriteTime(f) < today.AddDays(-7))
+                if (File.GetLastWriteTime(f) < DateTime.Now.Date.AddDays(-7))
                     File.Delete(f);
             }
         }
         catch { }
+    }
+
+    private static string Redact(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return value;
+        var jsonRedacted = SensitiveJsonRegex.Replace(value, "$1\"***\"");
+        return SensitiveHeaderRegex.Replace(jsonRedacted, "$1=***");
     }
 }

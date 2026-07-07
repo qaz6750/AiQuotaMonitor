@@ -18,6 +18,10 @@ public sealed class ProviderCapabilities
     public bool HasCost { get; init; } = true;
     /// <summary>是否有 MCP 月度。</summary>
     public bool HasMcp { get; init; } = true;
+    /// <summary>是否有普通月度额度（非 MCP）。</summary>
+    public bool HasMonthlyQuota { get; init; } = false;
+    /// <summary>是否是余额查询型提供商。</summary>
+    public bool IsBalanceProvider { get; init; } = false;
     /// <summary>是否 Cookie 鉴权（非 API Key）。</summary>
     public bool IsCookieAuth { get; init; } = false;
     /// <summary>是否支持通过内置网页登录自动抓取 Cookie。</summary>
@@ -30,6 +34,8 @@ public sealed class ProviderCapabilities
     public string SecondaryQuotaLabel { get; init; } = "周额度";
     /// <summary>进度环中心标签。</summary>
     public string RingCenterLabel { get; init; } = "5H";
+    /// <summary>月度额度标题。</summary>
+    public string MonthlyQuotaLabel { get; init; } = "MCP 月度用量";
 }
 
 /// <summary>服务提供商描述符。</summary>
@@ -257,6 +263,7 @@ public static class Providers
             HasResetTime = false,
             HasEstimate = false,
             HasMcp = false,
+            IsBalanceProvider = true,
             CredentialLabel = "OpenRouter Management Key",
             PrimaryQuotaLabel = "可用余额",
             SecondaryQuotaLabel = "本月消费",
@@ -285,6 +292,7 @@ public static class Providers
             HasResetTime = false,
             HasEstimate = false,
             HasMcp = false,
+            IsBalanceProvider = true,
             CredentialLabel = "DeepSeek API Key",
             PrimaryQuotaLabel = "账户余额",
             SecondaryQuotaLabel = "已充值余额",
@@ -312,6 +320,7 @@ public static class Providers
             HasResetTime = false,
             HasEstimate = false,
             HasMcp = false,
+            IsBalanceProvider = true,
             CredentialLabel = "Moonshot API Key",
             PrimaryQuotaLabel = "可用余额",
             SecondaryQuotaLabel = "现金余额",
@@ -364,12 +373,14 @@ public static class Providers
             HasTodayUsage = false,
             HasTrend = false,
             HasEstimate = false,
-            HasMcp = true,
+            HasMcp = false,
+            HasMonthlyQuota = true,
             HasCost = false,
             CredentialLabel = "OpenCode Go API Key",
             PrimaryQuotaLabel = "5 小时额度",
             SecondaryQuotaLabel = "周额度",
             RingCenterLabel = "Go",
+            MonthlyQuotaLabel = "月额度",
         },
     };
 

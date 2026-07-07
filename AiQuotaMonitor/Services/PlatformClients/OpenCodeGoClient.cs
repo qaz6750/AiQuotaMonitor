@@ -46,7 +46,7 @@ public sealed class OpenCodeGoClient : IPlatformClient
                 Level = level,
                 FiveHour = MoneyQuota("5 小时额度", rollingUsed, RollingLimitUsd, usage.RollingResetMs),
                 Weekly = MoneyQuota("周额度", weeklyUsed, WeeklyLimitUsd, usage.WeeklyResetMs),
-                Mcp = MoneyQuota("月额度", monthlyUsed, MonthlyLimitUsd, usage.MonthlyResetMs, QuotaKind.Mcp),
+                Monthly = MoneyQuota("月额度", monthlyUsed, MonthlyLimitUsd, usage.MonthlyResetMs, QuotaKind.Monthly),
                 ModelUsage = BuildModelSummary(models, monthlyUsed),
                 TotalDays = 30,
                 ActiveDays = usage.HasUsage ? 1 : 0,

@@ -43,6 +43,12 @@
                         <TextBlock Text="清空" FontSize="12"/>
                     </StackPanel>
                 </Button>
+                <Button Click="OpenFolder_Click" Padding="14,7" Background="Transparent" BorderBrush="{ThemeResource CardBorderBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8A7;" FontSize="13"/>
+                        <TextBlock Text="打开目录" FontSize="12"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Grid>
 
@@ -53,7 +59,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="搜索 provider、错误、账号 ID 或 HTTP 状态" TextChanged="Search_TextChanged"/>
+                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="搜索提供商、错误、账号 ID 或 HTTP 状态" TextChanged="Search_TextChanged"/>
                 <Border Grid.Column="1" Style="{StaticResource MetricPillStyle}" VerticalAlignment="Center">
                     <TextBlock Text="{Binding CountText}" FontSize="11" Foreground="{ThemeResource SubtleTextBrush}"/>
                 </Border>

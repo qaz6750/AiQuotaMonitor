@@ -144,10 +144,9 @@ public partial class OverviewViewModel : ViewModelBase
     public string RingCenterLabel => Caps.RingCenterLabel;
     public bool HasTodayUsage => Caps.HasTodayUsage;
     public bool HasResetTime => Caps.HasResetTime;
-    public bool HasMcp => _data.Current?.Mcp is not null && Caps.HasMcp;
-    public string MonthlyQuotaTitle => _settings.ActiveAccount?.ProviderId.Equals("opencode-go", StringComparison.OrdinalIgnoreCase) == true
-        ? "月额度"
-        : "MCP 月度用量";
+    private QuotaInfo? CurrentMonthlyQuota => _data.Current?.Monthly ?? _data.Current?.Mcp;
+    public bool HasMcp => CurrentMonthlyQuota is not null && (Caps.HasMcp || Caps.HasMonthlyQuota);
+    public string MonthlyQuotaTitle => Caps.MonthlyQuotaLabel;
     public bool HasCost => Caps.HasCost;
     public bool HasTrend => Caps.HasTrend;
     private bool IsCookieProvider => Caps.IsCookieAuth;
@@ -336,9 +335,10 @@ public partial class OverviewViewModel : ViewModelBase
         item.WeeklyPct = result.Weekly?.Percentage ?? 0;
         item.SecondaryUsed = (long)(result.Weekly?.CurrentUsage ?? 0);
         item.SecondaryLimit = (long)(result.Weekly?.Total ?? 0);
-        var isBalanceProvider = account.ProviderId is "deepseek" or "openrouter" or "moonshot";
-        item.EstimatedCostCny = (!isBalanceProvider && account.PlanType == PlanType.PayAsYouGo && result.Weekly?.CurrentUsage is double c && c > 0)
-            ? c
+        var isBalanceProvider = account.Provider.Capabilities.IsBalanceProvider;
+        var payAsYouGoCost = result.Weekly?.CurrentUsage ?? 0;
+        item.EstimatedCostCny = !isBalanceProvider && account.PlanType == PlanType.PayAsYouGo && payAsYouGoCost > 0
+            ? payAsYouGoCost
             : CostCalculator.EstimateFromTrend(result.Trend7d)?.TotalCny ?? 0;
 
         if (account.ProviderId == "deepseek")
@@ -427,7 +427,7 @@ public partial class OverviewViewModel : ViewModelBase
         var activeText = active is null ? "未选择活跃账号" : $"当前 {active.DisplayLabel}";
         var updateText = _data.LastUpdated is null ? "等待首次刷新" : $"{Formatters.FormatUpdatedAgo(_data.LastUpdated.Value)}更新";
         var dataText = HasError ? "最近刷新失败" : updateText;
-        var windows = new[] { _data.Current?.FiveHour, _data.Current?.Weekly, _data.Current?.Mcp }.Count(q => q is not null);
+        var windows = new[] { _data.Current?.FiveHour, _data.Current?.Weekly, _data.Current?.Monthly, _data.Current?.Mcp }.Count(q => q is not null);
         var windowText = windows > 0 ? $" · {windows} 个配额窗口" : string.Empty;
         return $"{accounts.Count} 个账号 · {providerCount} 个提供商 · {activeText}{windowText} · {dataText}";
     }
@@ -707,7 +707,7 @@ public partial class OverviewViewModel : ViewModelBase
         }
 
         // mcp
-        if (r.Mcp is { } qm)
+        if ((r.Monthly ?? r.Mcp) is { } qm)
         {
             McpPct = qm.Percentage;
             McpPctText = Formatters.FormatPercent(qm.Percentage);
@@ -730,7 +730,7 @@ public partial class OverviewViewModel : ViewModelBase
             }
         }
 
-        var isBalanceProvider = acc?.ProviderId is "deepseek" or "openrouter" or "moonshot";
+        var isBalanceProvider = acc?.Provider.Capabilities.IsBalanceProvider == true;
         if (isBalanceProvider)
         {
             CostText = "—";
@@ -781,6 +781,8 @@ public partial class OverviewViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActivePlanType));
         OnPropertyChanged(nameof(IsTokenPlan));
         OnPropertyChanged(nameof(IsPayAsYouGoPlan));
+        OnPropertyChanged(nameof(HasMcp));
+        OnPropertyChanged(nameof(MonthlyQuotaTitle));
         OnPropertyChanged(nameof(OverviewSubtitle));
     }
 

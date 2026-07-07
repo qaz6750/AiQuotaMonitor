@@ -34,8 +34,8 @@ public sealed class OpenRouterClient : IPlatformClient
         return new UsageResult
         {
             Level = $"余额 ${balance:F2}",
-            FiveHour = BalanceHttp.MoneyValue("可用余额", balance, "USD", total > 0 ? Math.Clamp(balance / total * 100, 0, 100) : 100),
-            Weekly = BalanceHttp.MoneyQuota("本月消费", monthly ?? used, total, "USD"),
+            FiveHour = BalanceHttp.BalanceValue("可用余额", balance, "USD", total > 0 ? Math.Clamp(balance / total * 100, 0, 100) : 100),
+            Weekly = BalanceHttp.SpentQuota("本月消费", monthly ?? used, total, "USD"),
             ModelUsage = BalanceHttp.MoneyModels(("日消费", daily), ("周消费", weekly), ("月消费", monthly), ("总额度", total)),
             TotalDays = 30,
             ActiveDays = 0,
@@ -82,8 +82,8 @@ public sealed class DeepSeekClient : IPlatformClient
         return new UsageResult
         {
             Level = available ? $"可用 {symbol}{total:F2}" : $"余额不可用 · {symbol}{total:F2}",
-            FiveHour = BalanceHttp.MoneyValue("可用余额", total, currency, available ? 100 : 0),
-            Weekly = BalanceHttp.MoneyValue("充值余额", paid, currency),
+            FiveHour = BalanceHttp.BalanceValue("可用余额", total, currency, available ? 100 : 0),
+            Weekly = BalanceHttp.BalanceValue("充值余额", paid, currency),
             ModelUsage = BalanceHttp.MoneyModels(("可用余额", total), ("充值余额", paid), ("赠金余额", granted)),
             TotalDays = 0,
             ActiveDays = 0,
@@ -112,8 +112,8 @@ public sealed class MoonshotClient : IPlatformClient
         return new UsageResult
         {
             Level = $"余额 ¥{available:F2}",
-            FiveHour = BalanceHttp.MoneyValue("可用余额", available, "CNY", total > 0 ? Math.Clamp(available / total * 100, 0, 100) : 100),
-            Weekly = BalanceHttp.MoneyValue("现金余额", cash, "CNY"),
+            FiveHour = BalanceHttp.BalanceValue("可用余额", available, "CNY", total > 0 ? Math.Clamp(available / total * 100, 0, 100) : 100),
+            Weekly = BalanceHttp.BalanceValue("现金余额", cash, "CNY"),
             ModelUsage = BalanceHttp.MoneyModels(("现金余额", cash), ("代金券", voucher), ("总额度", total)),
             TotalDays = 0,
             ActiveDays = 0,
@@ -181,7 +181,7 @@ internal static class BalanceHttp
         return SharedHttp.EnsureHttps($"{ub.Scheme}://{ub.Host}{port}{path}");
     }
 
-    public static QuotaInfo MoneyQuota(string label, double used, double total, string currency)
+    public static QuotaInfo SpentQuota(string label, double used, double total, string currency)
     {
         var pct = total > 0 ? used / total * 100 : 0;
         return new QuotaInfo
@@ -195,7 +195,7 @@ internal static class BalanceHttp
         };
     }
 
-    public static QuotaInfo MoneyValue(string label, double value, string currency, double percentage = 0)
+    public static QuotaInfo BalanceValue(string label, double value, string currency, double percentage = 0)
     {
         return new QuotaInfo
         {

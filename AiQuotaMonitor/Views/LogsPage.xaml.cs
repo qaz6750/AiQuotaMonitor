@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using AiQuotaMonitor.Helpers;
@@ -35,10 +36,7 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
     {
         try
         {
-            if (Directory.Exists(AppPaths.LogDirectory))
-            {
-                foreach (var file in Directory.GetFiles(AppPaths.LogDirectory, "*.log")) File.Delete(file);
-            }
+            AppLogger.ClearAllLogs();
             Entries.Clear();
             ApplyFilter();
             AppLogger.Info("日志已由用户清空");
@@ -51,6 +49,16 @@ public sealed partial class LogsPage : Page, INotifyPropertyChanged
     }
 
     private void Search_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
+
+    private void OpenFolder_Click(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(AppPaths.LogDirectory);
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = AppPaths.LogDirectory,
+            UseShellExecute = true,
+        });
+    }
 
     private void LoadLogs()
     {
